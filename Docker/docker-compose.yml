@@ -4,7 +4,7 @@ services:
   builder:
     build:
       context: builder
-    image: eosio/builder
+    image: vankiaio/vkt
 
   nodeosd:
     build:
