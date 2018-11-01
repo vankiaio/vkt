@@ -82,3 +82,4 @@ var/lib/node_*
 .idea/
 *.iws
 .DS_Store
+Docker/config2.ini
