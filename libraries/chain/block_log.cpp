@@ -491,7 +491,7 @@ void block_log::backup_log( const fc::path& data_dir) {
       if( blocks_dir.filename().generic_string() == "." ) {
             blocks_dir = blocks_dir.parent_path();
       }
-      auto backup_dir = blocks_dir.parent_path();
+      auto backup_dir = blocks_dir.parent_path().parent_path();
       auto blocks_dir_name = blocks_dir.filename();
       EOS_ASSERT( blocks_dir_name.generic_string() != ".", block_log_exception, "Invalid path to blocks directory" );
 
