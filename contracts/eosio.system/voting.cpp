@@ -81,7 +81,8 @@ namespace eosiosystem {
       top_producers.reserve(_maxbp);
       //End: Mod by LIYI Date:2018-08-30
 
-      for ( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < 21 && 0 < it->total_votes && it->active(); ++it ) {
+      //for ( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < 21 && 0 < it->total_votes && it->active(); ++it ) {
+      for ( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < _maxbp && 0 < it->total_votes && it->active(); ++it ) {
          top_producers.emplace_back( std::pair<eosio::producer_key,uint16_t>({{it->owner, it->producer_key}, it->location}) );
       }
 
