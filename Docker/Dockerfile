@@ -6,7 +6,7 @@ RUN git clone -b $branch https://github.com/vankiaio/vkt.git --recursive \
     && cd vkt && echo "$branch:$(git rev-parse HEAD)" > /etc/eosio-version \
     && cmake -H. -B"/tmp/build" -GNinja -DCMAKE_BUILD_TYPE=Release -DWASM_ROOT=/opt/wasm -DCMAKE_CXX_COMPILER=clang++ \
        -DCMAKE_C_COMPILER=clang -DCMAKE_INSTALL_PREFIX=/tmp/build -DBUILD_MONGO_DB_PLUGIN=true -DCORE_SYMBOL_NAME=$symbol \
-       -DEOSIO_ROOT_KEY=VKT7cC8xQq7kZQU1aBnAThD9jvJ9Xtjd1LRG3MN85UyPW98fP5RPC \
+       -DEOSIO_ROOT_KEY=VKT8J1Nu3f6NCWbPPZ8DwVM4XSLTfDhFdwPrgvyVzKrH85KwKh365 \
     && cmake --build /tmp/build --target install && rm /tmp/build/bin/eosiocpp
 
 
