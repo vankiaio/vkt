@@ -13,7 +13,7 @@ RUN git clone -b $branch https://github.com/vankiaio/vkt.git --recursive \
 FROM ubuntu:18.04
 LABEL author="LiYi@vankia.cn" \
   maintainer="vankia.io" \
-  version="1.3.0" \
+  version="1.3.2" \
   description="This is an vankiaio/vkt image"
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install openssl ca-certificates && rm -rf /var/lib/apt/lists/*
