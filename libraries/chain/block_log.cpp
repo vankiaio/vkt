@@ -591,52 +591,52 @@ void block_log::backup_log( const fc::path& data_dir) {
                                    ilog("the blocks.log read data error ,position is ${pos},total pos = ${block_end_pos} ",("pos",pos)("block_end_pos",block_end_pos));
                                    break;
                         }
-                        auto   id = tmp.id();
-                        if(p  os == backup_end_pos)
+                        auto id = tmp.id();
+                        if(pos == backup_end_pos)
                         {     
-                        // t  he first time get the blocks,just copy the data id
-                          previous = id;
+                             // the first time get the blocks,just copy the data id
+                             previous = id;
                         }
                         else
                         {
                             if(block_header::num_from_id(previous) + 1 != block_header::num_from_id(id) )
                             {
-                            ilog("the blocks.log data id is error,the position is ${pos}, the previous is ${previous},the id is ${id}",\
-                                  ("pos",pos)("previous",block_header::num_from_id(previous) + 1 )("id",block_header::num_from_id(id)));
-                            break;
-                          }
-                          previous = id;
-                      }
-                      uint64_t tmp_pos = std::numeric_limits<uint64_t>::max();
-                      if( (static_cast<uint64_t>(block_stream.tellg()) + sizeof(pos)) <= block_end_pos ) {
-                           block_stream.read( reinterpret_cast<char*>(&tmp_pos), sizeof(tmp_pos) );
-                      }
-                      if( pos != tmp_pos ) {
-                            ilog("the blocks.log postion value is error,the active position is ${pos}, the position is ${tmp_pos}",\
-                                  ("pos",pos)("tmp_pos",tmp_pos));
-                           break;
-                      }
-
-                      auto data = fc::raw::pack(tmp);
-                      backup_block_stream.write( data.data(), data.size() );
-                      backup_block_stream.write( reinterpret_cast<char*>(&pos), sizeof(pos) );
-                      pos = backup_block_stream.tellp();
+                                  ilog("the blocks.log data id is error,the position is ${pos}, the previous is ${previous},the id is ${id}",\
+                                        ("pos",pos)("previous",block_header::num_from_id(previous) + 1 )("id",block_header::num_from_id(id)));
+                                  break;
+                            }
+                            previous = id;
+                        }
+                        uint64_t tmp_pos = std::numeric_limits<uint64_t>::max();
+                        if( (static_cast<uint64_t>(block_stream.tellg()) + sizeof(pos)) <= block_end_pos ) {
+                             block_stream.read( reinterpret_cast<char*>(&tmp_pos), sizeof(tmp_pos) );
+                        }
+                        if( pos != tmp_pos ) {
+                              ilog("the blocks.log postion value is error,the active position is ${pos}, the position is ${tmp_pos}",\
+                                    ("pos",pos)("tmp_pos",tmp_pos));
+                             break;
+                        }
+                      
+                        auto data = fc::raw::pack(tmp);
+                        backup_block_stream.write( data.data(), data.size() );
+                        backup_block_stream.write( reinterpret_cast<char*>(&pos), sizeof(pos) );
+                        pos = backup_block_stream.tellp();
               
-              }
-              //which appens error during processing ,then reset the backup data  
-              if(pos<block_end_pos)
-              {
-                //      fc::resize_file(backup_log_path,backup_end_pos);
-              }
-
-            if( except_ptr ) {
-                  std::string error_msg;
+                 }
+                 //which appens error during processing ,then reset the backup data  
+                 if(pos<block_end_pos)
+                 {
+                   //      fc::resize_file(backup_log_path,backup_end_pos);
+                 }
+          
+                 if( except_ptr ) {
+                     std::string error_msg;
 
                   try {
-                       std::rethrow_exception(except_ptr);
-                  } catch( const fc::exception& e ) {
-                       error_msg = e.what();
-                  } catch( const std::exception& e ) {
+                          std::rethrow_exception(except_ptr);
+                     } catch( const fc::exception& e ) {
+                          error_msg = e.what();
+                     } catch( const std::exception& e ) {
                        error_msg = e.what();
                   } catch( ... ) {
                        error_msg = "unrecognized exception";
