@@ -277,6 +277,8 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
           "clear chain state database, recover as many blocks as possible from the block log, and then replay those blocks")
          ("delete-all-blocks", bpo::bool_switch()->default_value(false),
           "clear chain state database and block log")
+         ("backup-blocks-log", bpo::bool_switch()->default_value(false),
+          "increase backup  block log")
          ("truncate-at-block", bpo::value<uint32_t>()->default_value(0),
           "stop hard replay / block log recovery at this block number (if set to non-zero number)")
          ("import-reversible-blocks", bpo::value<bfs::path>(),
@@ -472,6 +474,10 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
             wlog( "The --truncate-at-block option does not make sense when deleting all blocks." );
          clear_directory_contents( my->chain_config->state_dir );
          fc::remove_all( my->blocks_dir );
+      } else if (options.at( "backup-blocks-log" ).as<bool>()){
+        // yangfenglin added 20181026 
+        ilog("backup the block.log immediately...");
+        block_log::backup_log(my->blocks_dir);
       } else if( options.at( "hard-replay-blockchain" ).as<bool>()) {
          ilog( "Hard replay requested: deleting state database" );
          clear_directory_contents( my->chain_config->state_dir );

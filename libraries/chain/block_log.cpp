@@ -481,5 +481,173 @@ namespace eosio { namespace chain {
       fc::raw::unpack(block_stream, gs);
       return gs;
    }
+#if 1 
+void block_log::backup_log( const fc::path& data_dir) {
+      ilog("Backuping Block Log...");
+      EOS_ASSERT( fc::is_directory(data_dir) && fc::is_regular_file(data_dir / "blocks.log"), block_log_not_found,
+                 "Block log not found in '${blocks_dir}'", ("blocks_dir", data_dir)          );
+
+      auto blocks_dir = fc::canonical( data_dir );
+      if( blocks_dir.filename().generic_string() == "." ) {
+         blocks_dir = blocks_dir.parent_path();
+      }
+      auto backup_dir = blocks_dir.parent_path();
+      auto blocks_dir_name = blocks_dir.filename();
+      EOS_ASSERT( blocks_dir_name.generic_string() != ".", block_log_exception, "Invalid path to blocks directory" );
+
+	  #if 1
+	  auto backup_log_path = backup_dir / "blocks_backup.log";
+	  auto block_log_path = blocks_dir / "blocks.log";
+          std::exception_ptr     except_ptr;
+	  #else
+          //backup_dir = backup_dir / blocks_dir_name.generic_string().append("-").append( now );
+	  EOS_ASSERT( !fc::exists(backup_dir), block_log_backup_dir_exist,
+                 "Cannot move existing blocks directory to already existing directory '${new_blocks_dir}'",
+                 ("new_blocks_dir", backup_dir) );
+	  #endif
+	  if(!fc::exists(backup_log_path))
+	  {
+	         std::fstream  block_stream,backup_block_stream;
+                 uint64_t pos_tmp,pos;  
+                 fc::remove(backup_log_path); 
+                 fc::copy(block_log_path,backup_log_path);
+	         block_stream.open( block_log_path.generic_string().c_str(), LOG_READ );
+                 block_stream.seekg(-sizeof(uint64_t), std::ios::end); 
+                 block_stream.read((char*)&pos_tmp, sizeof(pos_tmp));   
+                 backup_block_stream.open( block_log_path.generic_string().c_str(), LOG_READ );
+                 backup_block_stream.seekg(-sizeof(uint64_t), std::ios::end);
+                 backup_block_stream.read((char*)&pos, sizeof(pos));     	
+                 ilog("backup the new block log pos=${pos_tmp},backup blocks log pos=${pos}",("pos_tmp",pos_tmp)("pos",pos)); 
+                 return ;
+	  }
+	  else 
+	  {
+         	 std::fstream  block_stream;
+      	         std::fstream  backup_block_stream;
+		 block_stream.open( block_log_path.generic_string().c_str(), LOG_READ );
+		 //backup_block_stream.open( backup_log_path.generic_string().c_str(), LOG_WRITE );
+		 backup_block_stream.open( backup_log_path.generic_string().c_str(), LOG_READ ); 
+                 block_stream.seekg( 0, std::ios::end );
+		 backup_block_stream.seekg( 0,std::ios::end );
+		 uint64_t block_end_pos = block_stream.tellg();
+		 uint64_t backup_end_pos = backup_block_stream.tellg();
+                  
+                 //output the two files size 
+		 ilog("block.log file size = ${block_end_pos},blocks_backup.log file size = ${backup_end_pos}",("block_end_pos",block_end_pos)("backup_end_pos",backup_end_pos));
+		 //if blocks_backup.log is large then blocks.log,then copy blocks.log instead of itself
+                 if(backup_end_pos>=block_end_pos)
+		 {
+		     ilog("the blocks_backup.log ${backup_end_pos}is large than blocks.log ${block_end_pos} ",("backup_end_pos",backup_end_pos)("block_end_pos",block_end_pos));
+	             block_stream.close();
+                     backup_block_stream.close();
+                     fc::remove(backup_log_path);
+        	     fc::copy(block_log_path,backup_log_path);
+		     return ;
+		 }
+		 else
+		 {
+		    uint64_t pos,pos_tmp;
+	            signed_block tmp,tmp1;
+			
+                    backup_block_stream.seekg(-sizeof(uint64_t), std::ios::end);
+                    backup_block_stream.read((char*)&pos, sizeof(pos));
+                    block_stream.seekg(-sizeof(uint64_t), std::ios::end);
+                    block_stream.read((char*)&pos_tmp, sizeof(pos_tmp)); 
+	            ilog("blocks_backup.log the last block pos = ${pos},blocks.log the last block pos =${pos_tmp} ",("pos",pos)("pos_tmp",pos_tmp));
+	
+                backup_block_stream.seekg(pos);
+		block_stream.seekg(pos);
+		fc::raw::unpack(backup_block_stream,tmp);
+		fc::raw::unpack(block_stream,tmp1);
+		auto id = tmp.id();
+		auto id_tmp = tmp1.id();
+		if( block_header::num_from_id(id) != block_header::num_from_id(id_tmp))
+		{
+		    //check the backup_block.log last id ,if not same copy the blocks.log as well
+			ilog("the blocks_backup.log  ${id} is different  than blocks.log ${id_tmp} ",("id",id)("id_tmp",id_tmp));
+                        block_stream.close();
+                        backup_block_stream.close();
+			fc::copy(block_log_path,backup_log_path);
+			return ;
+		}
+		backup_block_stream.seekg(0, std::ios::end);
+		//get the backup_blocks.log file size
+                //pos = backup_block_stream.tellg(); 
+                //block_stream.seekg(pos);	
+         	//copy the increasement  file 
+                backup_block_stream.close();
+                backup_block_stream.open( backup_log_path.generic_string().c_str(), LOG_WRITE );
+                backup_block_stream.seekg( 0,std::ios::end ); 
+                pos = backup_block_stream.tellg();
+	        block_stream.seekg(pos);	
+                block_id_type previous;
+		while(pos<block_end_pos)
+		{
+                    ilog("the blocks.log backup processing ,position is ${pos},total pos = ${block_end_pos} ",("pos",pos)("block_end_pos",block_end_pos));
+		    try {
+			  fc::raw::unpack(block_stream, tmp);
+			  } catch( ... ) {
+				 except_ptr = std::current_exception();
+				 ilog("the blocks.log read data error ,position is ${pos},total pos = ${block_end_pos} ",("pos",pos)("block_end_pos",block_end_pos));
+				 break;
+			  }
+		  auto id = tmp.id();
+		  if(pos == backup_end_pos)
+		  {
+		    // the first time get the blocks,just copy the data id
+			previous = id;
+		  }
+		  else
+		  {
+			if(block_header::num_from_id(previous) + 1 != block_header::num_from_id(id) )
+			{
+				ilog("the blocks.log data id is error,the position is ${pos}, the previous is ${previous},the id is ${id}",\
+					("pos",pos)("previous",block_header::num_from_id(previous) + 1 )("id",block_header::num_from_id(id)));
+				break;
+			}
+			previous = id;
+		  }
+		  uint64_t tmp_pos = std::numeric_limits<uint64_t>::max();
+		  if( (static_cast<uint64_t>(block_stream.tellg()) + sizeof(pos)) <= block_end_pos ) {
+			 block_stream.read( reinterpret_cast<char*>(&tmp_pos), sizeof(tmp_pos) );
+		  }
+		  if( pos != tmp_pos ) {
+			  ilog("the blocks.log postion value is error,the active position is ${pos}, the position is ${tmp_pos}",\
+				  ("pos",pos)("tmp_pos",tmp_pos));
+			 break;
+		  }
+
+		  auto data = fc::raw::pack(tmp);
+		  backup_block_stream.write( data.data(), data.size() );
+		  backup_block_stream.write( reinterpret_cast<char*>(&pos), sizeof(pos) );
+		  pos = backup_block_stream.tellp();
+	  
+	}
+	//which appens error during processing ,then reset the backup data  
+	if(pos<block_end_pos)
+	{
+	//	fc::resize_file(backup_log_path,backup_end_pos);
+	}
+
+	if( except_ptr ) {
+	      std::string error_msg;
+
+	      try {
+		     std::rethrow_exception(except_ptr);
+	      } catch( const fc::exception& e ) {
+		     error_msg = e.what();
+	      } catch( const std::exception& e ) {
+		     error_msg = e.what();
+	      } catch( ... ) {
+		     error_msg = "unrecognized exception";
+	      }
+	      ilog("Backup only up to block position ${pos} could not be deserialized from the block log due to error:\n${error_msg}",
+			       ("pos", pos)("error_msg", error_msg) );
+
+	 }
+     } 
+  }
+} 
+#endif
 
 } } /// eosio::chain

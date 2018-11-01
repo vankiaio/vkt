@@ -67,6 +67,9 @@ namespace eosio { namespace chain {
 
          static genesis_state extract_genesis_state( const fc::path& data_dir );
 
+         //yangfenglin added 20181026  
+         static void backup_log( const fc::path& data_dir);
+
       private:
          void open(const fc::path& data_dir);
          void construct_index();
