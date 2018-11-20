@@ -44,7 +44,7 @@ Amazon 2017.09 及 更高版本.
 Centos 7.
 Fedora 25 及 更高版本(推荐Fedora 27).
 Mint 18.
-Ubuntu 16.04 (推荐Ubuntu 16.10).
+Ubuntu 18.04 (推荐Ubuntu 18.04).
 MacOS Darwin 10.12 及 更高版本 (推荐MacOS 10.13.x).
 
 ### 系统需求（针对所有系统）
