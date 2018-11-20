@@ -56,3 +56,4 @@ MacOS Darwin 10.12 及 更高版本 (推荐MacOS 10.13.x).
 
 cd vkt
 ./eosio_build.sh
+./eosio_install.sh
