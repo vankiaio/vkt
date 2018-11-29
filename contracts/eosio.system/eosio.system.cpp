@@ -152,11 +152,19 @@ namespace eosiosystem {
       if( creator != _self ) {
          auto tmp = newact >> 4;
          bool has_dot = false;
-
-         for( uint32_t i = 0; i < 12; ++i ) {
-           has_dot |= !(tmp & 0x1f);
-           tmp >>= 5;
+         size_t len = ((name{newact}).to_string()).length();
+         if(5>len)
+         {
+	      has_dot = true;
          }
+         else
+         {
+              tmp = newact >> (4+(12-len)*5);
+              for( uint32_t i = 0; i < len; ++i ) {
+		      has_dot |= !(tmp & 0x1f);
+		      tmp >>= 5;
+	      }
+	 }
          if( has_dot ) { // or is less than 12 characters
             auto suffix = eosio::name_suffix(newact);
             if( suffix == newact ) {
