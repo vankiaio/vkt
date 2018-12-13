@@ -1,10 +1,10 @@
+#include <eosio.token/eosio.token.hpp>
 #include "vankia.trans.hpp"
 #include "vankia.authright.cpp"
 namespace vankia
 {
 using namespace eosio;
 using namespace std;
-
 void accounting::deposit(account_name from, vector<account_record_content> content)
 {
     require_auth(from);
@@ -16,13 +16,26 @@ void accounting::deposit(account_name from, vector<account_record_content> conte
         account_record i_proposal = account_record(from, *content_itr);
         acc_record.push_back(i_proposal);
     }
+    
+    // check the asset of every accout,check the asset veroflow
+    asset temp_asset(0,S(4, VKT));
+    for (auto record_itr = acc_record.begin(); record_itr != acc_record.end(); ++record_itr)
+    {
+       eosio_assert(symbol_type(S(4, VKT)).name() == record_itr->assets.symbol.name(), "Deposit asset symbol error");
+       temp_asset += record_itr->assets;
+       eosio_assert(record_itr->assets.is_valid(),"Deposit asset error");
+       eosio_assert(temp_asset.is_valid(),"Deposit asset error");
+       eosio_assert(from!=record_itr->person_name,"Deposit cannot to self");
+    }
+
+    // check the asset of from is enough,check the asset veroflow
+    asset from_banlance  = token( N(eosio.token)).get_balance(from,symbol_type(S(4, VKT)).name());
+    eosio_assert(from_banlance.is_valid(),"Deposit asset error");
+    eosio_assert(from_banlance>=temp_asset,"Deposit balance of from account is not enough");
 
     for (auto record_itr = acc_record.begin(); record_itr != acc_record.end(); ++record_itr)
     {
         //根据record_itr更新table
-        print("S(VKT)@", symbol_type(S(4, VKT)).name(), "\n");
-        print("record_itr->assets.symbol.name()@", record_itr->assets.symbol.name(), "\n");
-        eosio_assert(symbol_type(S(4, VKT)).name() == record_itr->assets.symbol.name(), "Deposit asset symbol error");
         account_list list(_self, record_itr->person_name);
         auto itr = list.find(record_itr->person_name);
         if (itr == list.end())
@@ -53,10 +66,11 @@ void accounting::deposit(account_name from, vector<account_record_content> conte
                 }
             });
         }
+        INLINE_ACTION_SENDER(eosio::token, transfer)( N(eosio.token), {from,N(active)},
+         { from, record_itr->person_name, record_itr->assets, std::string("vankia.trans deposit") } );
     }
     return;
-};
-
+}
 void accounting::withdraw(account_name from, asset assets)
 {
     require_auth(from);
@@ -86,7 +100,7 @@ void accounting::withdraw(account_name from, asset assets)
         });
     }
     return;
-};
+}
 
 #if 0
 void accounting::get_assets(account_name owner)
@@ -119,7 +133,7 @@ void accounting::listrecord(account_name from, uint64_t seq, string hash, vector
         translist.deposit_time = current_time();
     });
     return;
-};
+}
 #else
 void accounting::listrecord(account_name from, uint64_t seq, vector<account_record_content> transList)
 {
