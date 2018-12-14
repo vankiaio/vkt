@@ -72,7 +72,7 @@ const static uint32_t   default_context_free_discount_net_usage_den  = 100;
 const static uint32_t   transaction_id_net_usage                     = 32; // 32 bytes for the size of a transaction id
 //Begin: Mod by LIYI Date:2018-11-15
 // BP Output block interval adjustment 
-//const static uint32_t   default_max_block_cpu_usage                 = 200'000; /// max block cpu usage in microseconds
+const static uint32_t   default_max_block_cpu_usage_genesis         = 200'000; /// max block cpu usage in microseconds
 const static uint32_t   default_max_block_cpu_usage                 = 6*200'000; /// max block cpu usage in microseconds
 //End: Mod by LIYI Date:2018-11-15
 const static uint32_t   default_target_block_cpu_usage_pct          = 10 * percent_1;
