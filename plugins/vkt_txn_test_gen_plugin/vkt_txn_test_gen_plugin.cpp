@@ -27,14 +27,14 @@
 #include <eosio.token/eosio.token.abi.hpp>
 
 namespace eosio { namespace detail {
-  struct txn_test_gen_empty {};
+  struct vkt_txn_test_gen_empty {};
 }}
 
-FC_REFLECT(eosio::detail::txn_test_gen_empty, );
+FC_REFLECT(eosio::detail::vkt_txn_test_gen_empty, );
 
 namespace eosio {
 
-static appbase::abstract_plugin& _txn_test_gen_plugin = app().register_plugin<vkt_txn_test_gen_plugin>();
+static appbase::abstract_plugin& _vkt_txn_test_gen_plugin = app().register_plugin<vkt_txn_test_gen_plugin>();
 
 using namespace eosio::chain;
 
@@ -53,16 +53,16 @@ using namespace eosio::chain;
 #define INVOKE_V_R_R_R(api_handle, call_name, in_param0, in_param1, in_param2) \
      const auto& vs = fc::json::json::from_string(body).as<fc::variants>(); \
      api_handle->call_name(vs.at(0).as<in_param0>(), vs.at(1).as<in_param1>(), vs.at(2).as<in_param2>()); \
-     eosio::detail::txn_test_gen_empty result;
+     eosio::detail::vkt_txn_test_gen_empty result;
 
 #define INVOKE_V_R_R(api_handle, call_name, in_param0, in_param1) \
      const auto& vs = fc::json::json::from_string(body).as<fc::variants>(); \
      api_handle->call_name(vs.at(0).as<in_param0>(), vs.at(1).as<in_param1>()); \
-     eosio::detail::txn_test_gen_empty result;
+     eosio::detail::vkt_txn_test_gen_empty result;
 
 #define INVOKE_V_V(api_handle, call_name) \
      api_handle->call_name(); \
-     eosio::detail::txn_test_gen_empty result;
+     eosio::detail::vkt_txn_test_gen_empty result;
 
 #define CALL_ASYNC(api_name, api_handle, call_name, INVOKE, http_response_code) \
 {std::string("/v1/" #api_name "/" #call_name), \
@@ -76,7 +76,7 @@ using namespace eosio::chain;
                http_plugin::handle_exception(#api_name, #call_name, body, cb);\
             }\
          } else {\
-            cb(http_response_code, fc::json::to_string(eosio::detail::txn_test_gen_empty())); \
+            cb(http_response_code, fc::json::to_string(eosio::detail::vkt_txn_test_gen_empty())); \
          }\
       };\
       INVOKE \
@@ -378,14 +378,14 @@ vkt_txn_test_gen_plugin::~vkt_txn_test_gen_plugin() {}
 
 void vkt_txn_test_gen_plugin::set_program_options(options_description&, options_description& cfg) {
    cfg.add_options()
-      ("txn-reference-block-lag", bpo::value<int32_t>()->default_value(0), "Lag in number of blocks from the head block when selecting the reference block for transactions (-1 means Last Irreversible Block)")
+      ("vkt-txn-reference-block-lag", bpo::value<int32_t>()->default_value(0), "Lag in number of blocks from the head block when selecting the reference block for transactions (-1 means Last Irreversible Block)")
    ;
 }
 
 void vkt_txn_test_gen_plugin::plugin_initialize(const variables_map& options) {
    try {
       my.reset( new vkt_txn_test_gen_plugin_impl );
-      my->txn_reference_block_lag = options.at( "txn-reference-block-lag" ).as<int32_t>();
+      my->txn_reference_block_lag = options.at( "vkt-txn-reference-block-lag" ).as<int32_t>();
    } FC_LOG_AND_RETHROW()
 }
 
