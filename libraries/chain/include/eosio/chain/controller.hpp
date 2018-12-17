@@ -2,6 +2,7 @@
 #include <eosio/chain/block_state.hpp>
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain/genesis_state.hpp>
+#include <eosio/chain/genesis_state_origin.hpp>
 #include <boost/signals2/signal.hpp>
 
 #include <eosio/chain/abi_serializer.hpp>
@@ -68,6 +69,7 @@ namespace eosio { namespace chain {
             bool                     allow_ram_billing_in_notify = false;
 
             genesis_state            genesis;
+            genesis_state_origin     genesis_origin;
             wasm_interface::vm_type  wasm_runtime = chain::config::default_wasm_runtime;
 
             db_read_mode             read_mode              = db_read_mode::SPECULATIVE;

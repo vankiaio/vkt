@@ -157,7 +157,7 @@ struct controller_impl {
     resource_limits( db ),
     authorization( s, db ),
     conf( cfg ),
-    chain_id( cfg.genesis.compute_chain_id() ),
+    chain_id( cfg.genesis_origin.compute_chain_id() ),
     read_mode( cfg.read_mode )
    {
 
@@ -381,7 +381,7 @@ struct controller_impl {
       genheader.pending_schedule      = initial_schedule;
       genheader.pending_schedule_hash = fc::sha256::hash(initial_schedule);
       genheader.header.timestamp      = conf.genesis.initial_timestamp;
-      genheader.header.action_mroot   = conf.genesis.compute_chain_id();
+      genheader.header.action_mroot   = conf.genesis_origin.compute_chain_id();
       genheader.id                    = genheader.header.id();
       genheader.block_num             = genheader.header.block_num();
 
