@@ -134,7 +134,7 @@ namespace eosiosystem {
          eosio_global_state     _gstate;
          rammarket              _rammarket;
          //Begin: Add by LIYI Date:2018-08-30
-         const uint8_t          _maxbp = 3;
+         const uint8_t          _maxbp = 7;
          //End: Add by LIYI Date:2018-08-30
 
 
