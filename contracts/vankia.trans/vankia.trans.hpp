@@ -125,7 +125,7 @@ class accounting : public eosio::contract
         static key256 get_ipfskey(const checksum256 &ipfskey)
         {
             const uint64_t *p64 = reinterpret_cast<const uint64_t *>(&ipfskey);
-            print<32>(key256::make_from_word_sequence<uint64_t>(p64[0], p64[1], p64[2], p64[3]));
+            //print<32>(key256::make_from_word_sequence<uint64_t>(p64[0], p64[1], p64[2], p64[3]));
             return key256::make_from_word_sequence<uint64_t>(p64[0], p64[1], p64[2], p64[3]);
         }
 
