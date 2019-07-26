@@ -246,7 +246,7 @@ def myTest(transWillEnterBlock):
         topo="mesh"
         delay=0
         Print("Stand up cluster")
-        if cluster.launch(pnodes, total_nodes, topo, delay) is False:
+        if cluster.launch(pnodes=pnodes, totalNodes=total_nodes, topo=topo, delay=delay) is False:
             error("Failed to stand up eos cluster.")
             return False
 
@@ -256,11 +256,6 @@ def myTest(transWillEnterBlock):
             return False
         currencyAccount=accounts[0]
         currencyAccount.name="currency0000"
-
-        Print("Stand up walletd")
-        if walletMgr.launch() is False:
-            error("Failed to stand up eos walletd.")
-            return False
 
         testWalletName="test"
         Print("Creating wallet \"%s\"." % (testWalletName))
@@ -328,7 +323,7 @@ def myTest(transWillEnterBlock):
                 return False
 
             Print("Get details for transaction %s" % (transId))
-            transaction=node2.getTransaction(trans[1], exitOnError=True)
+            transaction=node2.getTransaction(transId, exitOnError=True)
             signature=transaction["transaction"]["signatures"][0]
 
             blockNum=int(transaction["transaction"]["ref_block_num"])

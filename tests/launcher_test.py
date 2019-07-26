@@ -21,7 +21,7 @@ cmdError=Utils.cmdError
 from core_symbol import CORE_SYMBOL
 
 args = TestHelper.parse_args({"--defproducera_prvt_key","--dump-error-details","--dont-launch","--keep-logs",
-                              "-v","--leave-running","--clean-run","--p2p-plugin"})
+                              "-v","--leave-running","--clean-run"})
 debug=args.v
 defproduceraPrvtKey=args.defproducera_prvt_key
 dumpErrorDetails=args.dump_error_details
@@ -29,7 +29,6 @@ keepLogs=args.keep_logs
 dontLaunch=args.dont_launch
 dontKill=args.leave_running
 killAll=args.clean_run
-p2pPlugin=args.p2p_plugin
 
 Utils.Debug=debug
 cluster=Cluster(walletd=True, defproduceraPrvtKey=defproduceraPrvtKey)
@@ -38,7 +37,7 @@ testSuccessful=False
 killEosInstances=not dontKill
 killWallet=not dontKill
 
-WalletdName="keosd"
+WalletdName=Utils.EosWalletName
 ClientName="cleos"
 timeout = .5 * 12 * 2 + 60 # time for finalization with 1 producer + 60 seconds padding
 Utils.setIrreversibleTimeout(timeout)
@@ -46,19 +45,26 @@ Utils.setIrreversibleTimeout(timeout)
 try:
     TestHelper.printSystemInfo("BEGIN")
 
-    walletMgr.killall(allInstances=killAll)
-    walletMgr.cleanup()
+    cluster.setWalletMgr(walletMgr)
 
     if not dontLaunch:
         cluster.killall(allInstances=killAll)
         cluster.cleanup()
         Print("Stand up cluster")
-        if cluster.launch(pnodes=4, dontKill=dontKill, p2pPlugin=p2pPlugin) is False:
+        pnodes=4
+        if cluster.launch(pnodes=pnodes, totalNodes=pnodes) is False:
             cmdError("launcher")
             errorExit("Failed to stand up eos cluster.")
     else:
+        walletMgr.killall(allInstances=killAll)
+        walletMgr.cleanup()
         cluster.initializeNodes(defproduceraPrvtKey=defproduceraPrvtKey)
         killEosInstances=False
+
+        print("Stand up walletd")
+        if walletMgr.launch() is False:
+            cmdError("%s" % (WalletdName))
+            errorExit("Failed to stand up eos walletd.")
 
     Print("Validating system accounts after bootstrap")
     cluster.validateAccounts(None)
@@ -85,13 +91,6 @@ try:
 
     exchangeAccount.ownerPrivateKey=PRV_KEY2
     exchangeAccount.ownerPublicKey=PUB_KEY2
-
-    Print("Stand up %s" % (WalletdName))
-    walletMgr.killall(allInstances=killAll)
-    walletMgr.cleanup()
-    if walletMgr.launch() is False:
-        cmdError("%s" % (WalletdName))
-        errorExit("Failed to stand up eos walletd.")
 
     testWalletName="test"
     Print("Creating wallet \"%s\"." % (testWalletName))
@@ -191,7 +190,7 @@ try:
 
     node.waitForTransInBlock(transId)
 
-    transaction=node.getTransaction(trans, exitOnError=True, delayedRetry=False)
+    transaction=node.getTransaction(transId, exitOnError=True, delayedRetry=False)
 
     typeVal=None
     amountVal=None

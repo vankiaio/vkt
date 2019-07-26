@@ -22,10 +22,16 @@ class AppArgs:
         arg=self.AppArg(flag, type, help, default, choices)
         self.args.append(arg)
 
+
+    def add_bool(self, flag, help, action='store_true'):
+        arg=self.AppArg(flag=flag, help=help, action=action)
+        self.args.append(arg)
+
 # pylint: disable=too-many-instance-attributes
 class TestHelper(object):
     LOCAL_HOST="localhost"
     DEFAULT_PORT=8888
+    DEFAULT_WALLET_PORT=9899
 
     @staticmethod
     # pylint: disable=too-many-branches
@@ -59,8 +65,6 @@ class TestHelper(object):
                     default=Utils.SigKillTag)
         if "--kill-count" in includeArgs:
             parser.add_argument("--kill-count", type=int, help="nodeos instances to kill", default=-1)
-        if "--p2p-plugin" in includeArgs:
-            parser.add_argument("--p2p-plugin", choices=["net", "bnet"], help="select a p2p plugin to use. Defaults to net.", default="net")
         if "--seed" in includeArgs:
             parser.add_argument("--seed", type=int, help="random seed", default=1)
 
@@ -70,6 +74,12 @@ class TestHelper(object):
         if "--port" in includeArgs:
             parser.add_argument("-p", "--port", type=int, help="%s host port" % Utils.EosServerName,
                                      default=TestHelper.DEFAULT_PORT)
+        if "--wallet-host" in includeArgs:
+            parser.add_argument("--wallet-host", type=str, help="%s host" % Utils.EosWalletName,
+                                     default=TestHelper.LOCAL_HOST)
+        if "--wallet-port" in includeArgs:
+            parser.add_argument("--wallet-port", type=int, help="%s port" % Utils.EosWalletName,
+                                     default=TestHelper.DEFAULT_WALLET_PORT)
         if "--prod-count" in includeArgs:
             parser.add_argument("-c", "--prod-count", type=int, help="Per node producer count", default=1)
         if "--defproducera_prvt_key" in includeArgs:
@@ -98,6 +108,8 @@ class TestHelper(object):
             parser.add_argument("--clean-run", help="Kill all nodeos and kleos instances", action='store_true')
         if "--sanity-test" in includeArgs:
             parser.add_argument("--sanity-test", help="Validates nodeos and kleos are in path and can be started up.", action='store_true')
+        if "--alternate-version-labels-file" in includeArgs:
+            parser.add_argument("--alternate-version-labels-file", type=str, help="Provide a file to define the labels that can be used in the test and the path to the version installation associated with that.")
 
         for arg in applicationSpecificArgs.args:
             parser.add_argument(arg.flag, type=arg.type, help=arg.help, choices=arg.choices, default=arg.default)
@@ -138,9 +150,13 @@ class TestHelper(object):
             Utils.Print("Test failed.")
         if not testSuccessful and dumpErrorDetails:
             cluster.reportStatus()
+            Utils.Print(Utils.FileDivider)
+            psOut=Cluster.pgrepEosServers(timeout=60)
+            Utils.Print("pgrep output:\n%s" % (psOut))
             cluster.dumpErrorDetails()
             if walletMgr:
                 walletMgr.dumpErrorDetails()
+            cluster.printBlockLogIfNeeded()
             Utils.Print("== Errors see above ==")
             if len(Utils.CheckOutputDeque)>0:
                 Utils.Print("== cout/cerr pairs from last %d calls to Utils. ==" % len(Utils.CheckOutputDeque))

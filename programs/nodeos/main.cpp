@@ -6,10 +6,8 @@
 
 #include <eosio/chain_plugin/chain_plugin.hpp>
 #include <eosio/http_plugin/http_plugin.hpp>
-#include <eosio/history_plugin/history_plugin.hpp>
 #include <eosio/net_plugin/net_plugin.hpp>
 #include <eosio/producer_plugin/producer_plugin.hpp>
-#include <eosio/utilities/common.hpp>
 
 #include <fc/log/logger_config.hpp>
 #include <fc/log/appender.hpp>
@@ -22,10 +20,6 @@
 
 using namespace appbase;
 using namespace eosio;
-
-namespace fc {
-   std::unordered_map<std::string,appender::ptr>& get_appender_map();
-}
 
 namespace detail {
 
@@ -51,21 +45,13 @@ void configure_logging(const bfs::path& config_path)
 
 } // namespace detail
 
-void logging_conf_loop()
+void logging_conf_handler()
 {
-   std::shared_ptr<boost::asio::signal_set> sighup_set(new boost::asio::signal_set(app().get_io_service(), SIGHUP));
-   sighup_set->async_wait([sighup_set](const boost::system::error_code& err, int /*num*/) {
-      if(!err)
-      {
-         ilog("Received HUP.  Reloading logging configuration.");
-         auto config_path = app().get_logging_conf();
-         if(fc::exists(config_path))
-            ::detail::configure_logging(config_path);
-         for(auto iter : fc::get_appender_map())
-            iter.second->initialize(app().get_io_service());
-         logging_conf_loop();
-      }
-   });
+   auto config_path = app().get_logging_conf();
+   ilog("Received HUP.  Reloading logging configuration from ${p}.", ("p", config_path.string()));
+   if(fc::exists(config_path))
+      ::detail::configure_logging(config_path);
+   fc::log_config::initialize_appenders( app().get_io_service() );
 }
 
 void initialize_logging()
@@ -73,10 +59,9 @@ void initialize_logging()
    auto config_path = app().get_logging_conf();
    if(fc::exists(config_path))
      fc::configure_logging(config_path); // intentionally allowing exceptions to escape
-   for(auto iter : fc::get_appender_map())
-     iter.second->initialize(app().get_io_service());
+   fc::log_config::initialize_appenders( app().get_io_service() );
 
-   logging_conf_loop();
+   app().set_sighup_callback(logging_conf_handler);
 }
 
 enum return_codes {
@@ -94,21 +79,20 @@ int main(int argc, char** argv)
 {
    try {
       app().set_version(eosio::nodeos::config::version);
-      app().register_plugin<history_plugin>();
 
       auto root = fc::app_path();
-      app().set_default_data_dir(root / "eosio/nodeos/data" );
-      app().set_default_config_dir(root / "eosio/nodeos/config" );
+      app().set_default_data_dir(root / "eosio" / nodeos::config::node_executable_name / "data" );
+      app().set_default_config_dir(root / "eosio" / nodeos::config::node_executable_name / "config" );
       http_plugin::set_defaults({
-         .address_config_prefix = "",
          .default_unix_socket_path = "",
          .default_http_port = 8888
       });
-      if(!app().initialize<chain_plugin, http_plugin, net_plugin, producer_plugin>(argc, argv))
+      if(!app().initialize<chain_plugin, net_plugin, producer_plugin>(argc, argv))
          return INITIALIZE_FAIL;
       initialize_logging();
-      ilog("nodeos version ${ver}", ("ver", app().version_string()));
-      ilog("eosio root is ${root}", ("root", root.string()));
+      ilog("${name} version ${ver}", ("name", nodeos::config::node_executable_name)("ver", app().version_string()));
+      ilog("${name} using configuration file ${c}", ("name", nodeos::config::node_executable_name)("c", app().full_config_file_path().string()));
+      ilog("${name} data directory is ${d}", ("name", nodeos::config::node_executable_name)("d", app().data_dir().string()));
       app().startup();
       app().exec();
    } catch( const extract_genesis_state_exception& e ) {
@@ -154,5 +138,6 @@ int main(int argc, char** argv)
       return OTHER_FAIL;
    }
 
+   ilog("${name} successfully exiting", ("name", nodeos::config::node_executable_name));
    return SUCCESS;
 }

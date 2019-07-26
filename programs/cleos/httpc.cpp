@@ -18,6 +18,7 @@
 #include <boost/asio/ssl.hpp>
 #include <fc/variant.hpp>
 #include <fc/io/json.hpp>
+#include <fc/network/platform_root_ca.hpp>
 #include <eosio/chain/exceptions.hpp>
 #include <eosio/http_plugin/http_plugin.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
@@ -88,17 +89,21 @@ namespace eosio { namespace client { namespace http {
          if(std::regex_search(header, match, clregex))
             response_content_length = std::stoi(match[1]);
       }
-      EOS_ASSERT(response_content_length >= 0, invalid_http_response, "Invalid content-length response");
+
+      // Attempt to read the response body using the length indicated by the
+      // Content-length header. If the header was not present just read all available bytes.
+      if( response_content_length != -1 ) {
+         response_content_length -= response.size();
+         if( response_content_length > 0 )
+            boost::asio::read(socket, response, boost::asio::transfer_exactly(response_content_length));
+      } else {
+         boost::system::error_code ec;
+         boost::asio::read(socket, response, boost::asio::transfer_all(), ec);
+         EOS_ASSERT(!ec || ec == boost::asio::ssl::error::stream_truncated, http_exception, "Unable to read http response: ${err}", ("err",ec.message()));
+      }
 
       std::stringstream re;
-      // Write whatever content we already have to output.
-      response_content_length -= response.size();
-      if (response.size() > 0)
-         re << &response;
-
-      boost::asio::read(socket, response, boost::asio::transfer_exactly(response_content_length));
       re << &response;
-
       return re.str();
    }
 
@@ -197,12 +202,12 @@ namespace eosio { namespace client { namespace http {
    request_stream << "content-length: " << postjson.size() << "\r\n";
    request_stream << "Accept: */*\r\n";
    request_stream << "Connection: close\r\n";
-   request_stream << "\r\n";
    // append more customized headers
    std::vector<string>::iterator itr;
    for (itr = cp.headers.begin(); itr != cp.headers.end(); itr++) {
       request_stream << *itr << "\r\n";
    }
+   request_stream << "\r\n";
    request_stream << postjson;
 
    if ( print_request ) {
@@ -230,14 +235,7 @@ namespace eosio { namespace client { namespace http {
       }
       else { //https
          boost::asio::ssl::context ssl_context(boost::asio::ssl::context::sslv23_client);
-#if defined( __APPLE__ )
-         //TODO: this is undocumented/not supported; fix with keychain based approach
-         ssl_context.load_verify_file("/private/etc/ssl/cert.pem");
-#elif defined( _WIN32 )
-         EOS_THROW(http_exception, "HTTPS on Windows not supported");
-#else
-         ssl_context.set_default_verify_paths();
-#endif
+         fc::add_platform_root_cas_to_context(ssl_context);
 
          boost::asio::ssl::stream<boost::asio::ip::tcp::socket> socket(cp.context->ios, ssl_context);
          SSL_set_tlsext_host_name(socket.native_handle(), url.server.c_str());

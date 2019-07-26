@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE.txt
+ *  @copyright defined in eos/LICENSE
  */
 #pragma once
 #include <appbase/application.hpp>
@@ -17,7 +17,7 @@ namespace eosio {
     *
     * Arguments: response_code, response_body
     */
-   using url_response_callback = std::function<void(int,string)>;
+   using url_response_callback = std::function<void(int,fc::variant)>;
 
    /**
     * @brief Callback type for a URL handler
@@ -41,9 +41,6 @@ namespace eosio {
    using api_description = std::map<string, url_handler>;
 
    struct http_plugin_defaults {
-      //If not empty, this string is prepended on to the various configuration
-      // items for setting listen addresses
-      string address_config_prefix;
       //If empty, unix socket support will be completely disabled. If not empty,
       // unix socket support is enabled with the given default path (treated relative
       // to the datadir)
@@ -60,12 +57,12 @@ namespace eosio {
     *  called with the response code and body.
     *
     *  The handler will be called from the appbase application io_service
-    *  thread.  The callback can be called from any thread and will 
+    *  thread.  The callback can be called from any thread and will
     *  automatically propagate the call to the http thread.
     *
     *  The HTTP service will run in its own thread with its own io_service to
     *  make sure that HTTP request processing does not interfer with other
-    *  plugins.  
+    *  plugins.
     */
    class http_plugin : public appbase::plugin<http_plugin>
    {
@@ -85,7 +82,7 @@ namespace eosio {
 
         void add_handler(const string& url, const url_handler&);
         void add_api(const api_description& api) {
-           for (const auto& call : api) 
+           for (const auto& call : api)
               add_handler(call.first, call.second);
         }
 
@@ -94,6 +91,14 @@ namespace eosio {
 
         bool is_on_loopback() const;
         bool is_secure() const;
+
+        bool verbose_errors()const;
+
+        struct get_supported_apis_result {
+           vector<string> apis;
+        };
+
+        get_supported_apis_result get_supported_apis()const;
 
       private:
         std::unique_ptr<class http_plugin_impl> my;
@@ -124,21 +129,22 @@ namespace eosio {
 
          error_info() {};
 
-         error_info(const fc::exception& exc, bool include_log) {
+         error_info(const fc::exception& exc, bool include_full_log) {
             code = exc.code();
             name = exc.name();
             what = exc.what();
-            if (include_log) {
-               for (auto itr = exc.get_log().begin(); itr != exc.get_log().end(); ++itr) {
-                  // Prevent sending trace that are too big
-                  if (details.size() >= details_limit) break;
-                  // Append error
-                  error_detail detail = {
-                          itr->get_message(), itr->get_context().get_file(),
-                          itr->get_context().get_line_number(), itr->get_context().get_method()
-                  };
-                  details.emplace_back(detail);
-               }
+            uint8_t limit = include_full_log ? details_limit : 1;
+            for( auto itr = exc.get_log().begin(); itr != exc.get_log().end(); ++itr ) {
+               // Prevent sending trace that are too big
+               if( details.size() >= limit ) break;
+               // Append error
+               error_detail detail = {
+                     include_full_log ? itr->get_message() : itr->get_limited_message(),
+                     itr->get_context().get_file(),
+                     itr->get_context().get_line_number(),
+                     itr->get_context().get_method()
+               };
+               details.emplace_back( detail );
             }
          }
       };
@@ -150,3 +156,4 @@ namespace eosio {
 FC_REFLECT(eosio::error_results::error_info::error_detail, (message)(file)(line_number)(method))
 FC_REFLECT(eosio::error_results::error_info, (code)(name)(what)(details))
 FC_REFLECT(eosio::error_results, (code)(message)(error))
+FC_REFLECT(eosio::http_plugin::get_supported_apis_result, (apis))

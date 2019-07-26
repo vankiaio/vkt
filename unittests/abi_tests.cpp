@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE.txt
+ *  @copyright defined in eos/LICENSE
  */
 #include <algorithm>
 #include <vector>
@@ -18,12 +18,9 @@
 #include <eosio/chain/contract_types.hpp>
 #include <eosio/chain/abi_serializer.hpp>
 #include <eosio/chain/eosio_contract.hpp>
-#include <eosio/abi_generator/abi_generator.hpp>
 #include <eosio/testing/tester.hpp>
 
 #include <boost/test/framework.hpp>
-
-#include <config.hpp>
 
 #include <deep_nested.abi.hpp>
 #include <large_nested.abi.hpp>
@@ -539,1298 +536,6 @@ BOOST_AUTO_TEST_CASE(uint_types)
 
 } FC_LOG_AND_RETHROW() }
 
-using namespace eosio::unittests::config;
-
-struct abi_gen_helper {
-
-  abi_gen_helper() {}
-
-  static bool is_abi_generation_exception(const eosio::abi_generation_exception& e) { return true; };
-
-  bool generate_abi(const char* source, const char* abi, bool opt_sfs=false) {
-
-    std::string include_param = std::string("-I") + eosiolib_path;
-    std::string core_sym_include_param = std::string("-I") + core_symbol_path;
-    std::string pfr_include_param = std::string("-I") + pfr_include_path;
-    std::string boost_include_param = std::string("-I") + boost_include_path;
-    std::string stdcpp_include_param = std::string("-I") + eosiolib_path + "/libc++/upstream/include";
-    std::string stdc_include_param = std::string("-I") + eosiolib_path +  "/musl/upstream/include";
-
-    abi_def output;
-    output.version = "eosio::abi/1.0";
-
-    std::string contract;
-    std::vector<std::string> actions;
-
-    auto extra_args = std::vector<std::string>{"-fparse-all-comments", "--std=c++14", "--target=wasm32", "-ffreestanding", "-nostdlib",
-      "-nostdlibinc", "-fno-threadsafe-statics", "-fno-rtti",  "-fno-exceptions",
-      include_param, boost_include_param, stdcpp_include_param,
-      stdc_include_param, pfr_include_param, core_sym_include_param };
-
-    bool res = runToolOnCodeWithArgs(
-      new find_eosio_abi_macro_action(contract, actions, ""),
-      source,
-      extra_args
-    );
-    FC_ASSERT(res == true);
-
-    res = runToolOnCodeWithArgs(
-      new generate_abi_action(false, opt_sfs, "", output, contract, actions),
-      source,
-      extra_args
-    );
-    FC_ASSERT(res == true);
-
-    abi_serializer abis(output, max_serialization_time);
-
-    auto abi1 = fc::json::from_string(abi).as<abi_def>();
-
-    auto e = fc::to_hex(fc::raw::pack(abi1)) == fc::to_hex(fc::raw::pack(output));
-
-    if(!e) {
-      BOOST_TEST_MESSAGE("Generate ABI:\n" <<
-                        "expected: \n" << fc::json::to_pretty_string(abi1) << "\n" <<
-                        "generated: \n" << fc::json::to_pretty_string(output));
-    }
-
-    return e;
-  }
-
-};
-
-BOOST_FIXTURE_TEST_CASE(abigen_unknown_type, abi_gen_helper)
-{ try {
-
-   const char* unknown_type = R"=====(
-   #include <eosiolib/types.h>
-   //@abi action
-   struct transfer {
-      uint64_t param1;
-      char*    param2;
-   };
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(unknown_type, ""), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_all_types, abi_gen_helper)
-{  try {
-
-   const char* all_types = R"=====(
-   #pragma GCC diagnostic ignored "-Wpointer-bool-conversion"
-   #include <eosiolib/types.hpp>
-   #include <eosiolib/varint.hpp>
-   #include <eosiolib/asset.hpp>
-   #include <eosiolib/time.hpp>
-
-   using namespace eosio;
-
-   typedef signed_int varint32;
-   typedef unsigned_int varuint32;
-   typedef symbol_type symbol;
-
-   //@abi action
-   struct test_struct {
-      bool                    field1;
-      int8_t                  field2;
-      uint8_t                 field3;
-      int16_t                 field4;
-      uint16_t                field5;
-      int32_t                 field6;
-      uint32_t                field7;
-      int64_t                 field8;
-      uint64_t                field9;
-      int128_t                field10;
-      uint128_t               field11;
-      varint32                field12;
-      varuint32               field13;
-      time_point              field14;
-      time_point_sec          field15;
-      block_timestamp_type    field16;
-      name                    field17;
-      bytes                   field18;
-      std::string             field19;
-      checksum160             field20;
-      checksum256             field21;
-      checksum512             field22;
-      public_key              field23;
-      signature               field24;
-      symbol                  field25;
-      asset                   field26;
-      extended_asset          field27;
-   };
-   )=====";
-
-   const char* all_types_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [],
-     "structs": [{
-      "name": "test_struct",
-      "base": "",
-      "fields": [{
-          "name": "field1",
-          "type": "bool"
-        },{
-          "name": "field2",
-          "type": "int8"
-        },{
-          "name": "field3",
-          "type": "uint8"
-        },{
-          "name": "field4",
-          "type": "int16"
-        },{
-          "name": "field5",
-          "type": "uint16"
-        },{
-          "name": "field6",
-          "type": "int32"
-        },{
-          "name": "field7",
-          "type": "uint32"
-        },{
-          "name": "field8",
-          "type": "int64"
-        },{
-          "name": "field9",
-          "type": "uint64"
-        },{
-          "name": "field10",
-          "type": "int128"
-        },{
-          "name": "field11",
-          "type": "uint128"
-        },{
-          "name": "field12",
-          "type": "varint32"
-        },{
-          "name": "field13",
-          "type": "varuint32"
-        },{
-          "name": "field14",
-          "type": "time_point"
-        },{
-          "name": "field15",
-          "type": "time_point_sec"
-        },{
-          "name": "field16",
-          "type": "block_timestamp_type"
-        },{
-          "name": "field17",
-          "type": "name"
-        },{
-          "name": "field18",
-          "type": "bytes"
-        },{
-          "name": "field19",
-          "type": "string"
-        },{
-          "name": "field20",
-          "type": "checksum160"
-        },{
-          "name": "field21",
-          "type": "checksum256"
-        },{
-          "name": "field22",
-          "type": "checksum512"
-        },{
-          "name": "field23",
-          "type": "public_key"
-        },{
-          "name": "field24",
-          "type": "signature"
-        },{
-          "name": "field25",
-          "type": "symbol"
-        },{
-          "name": "field26",
-          "type": "asset"
-        },{
-          "name": "field27",
-          "type": "extended_asset"
-        }
-      ]
-     }],
-     "actions": [{
-         "name": "teststruct",
-         "type": "test_struct",
-         "ricardian_contract": ""
-       }
-     ],
-     "tables": [],
-     "ricardian_clauses": []
-   }
-   )=====";
-   BOOST_TEST( generate_abi(all_types, all_types_abi) == true);
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_double_base, abi_gen_helper)
-{ try {
-
-   const char* double_base = R"=====(
-   #include <eosiolib/types.h>
-
-   struct A {
-      uint64_t param3;
-   };
-   struct B {
-      uint64_t param2;
-   };
-
-   //@abi action
-   struct C : A,B {
-      uint64_t param1;
-   };
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(double_base, ""), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-
-} FC_LOG_AND_RETHROW() }
-
-
-BOOST_FIXTURE_TEST_CASE(abigen_double_action, abi_gen_helper)
-{ try {
-
-   const char* double_action = R"=====(
-   #include <eosiolib/types.h>
-
-   struct A {
-      uint64_t param3;
-   };
-   struct B : A {
-      uint64_t param2;
-   };
-
-   //@abi action action1 action2
-   struct C : B {
-      uint64_t param1;
-   };
-   )=====";
-
-   const char* double_action_abi = R"=====(
-   {
-       "version": "eosio::abi/1.0",
-       "types": [],
-       "structs": [{
-          "name" : "A",
-          "base" : "",
-          "fields" : [{
-            "name" : "param3",
-            "type" : "uint64"
-          }]
-       },{
-          "name" : "B",
-          "base" : "A",
-          "fields" : [{
-            "name" : "param2",
-            "type" : "uint64"
-          }]
-       },{
-          "name" : "C",
-          "base" : "B",
-          "fields" : [{
-            "name" : "param1",
-            "type" : "uint64"
-          }]
-       }],
-       "actions": [{
-          "name" : "action1",
-          "type" : "C",
-          "ricardian_contract" : ""
-       },{
-          "name" : "action2",
-          "type" : "C",
-          "ricardian_contract" : ""
-       }],
-       "tables": [],
-       "ricardian_clauses":[]
-   }
-   )=====";
-
-
-   BOOST_TEST( generate_abi(double_action, double_action_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-
-BOOST_FIXTURE_TEST_CASE(abigen_all_indexes, abi_gen_helper)
-{ try {
-
-   const char* all_indexes = R"=====(
-   #include <eosiolib/types.hpp>
-   #include <string>
-
-   using namespace eosio;
-
-   //@abi table
-   struct table1 {
-      uint64_t field1;
-   };
-
-   )=====";
-
-   const char* all_indexes_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [],
-     "structs": [{
-         "name": "table1",
-         "base": "",
-         "fields": [{
-             "name": "field1",
-             "type": "uint64"
-           }
-         ]
-       }
-     ],
-     "actions": [],
-     "tables": [{
-         "name": "table1",
-         "index_type": "i64",
-         "key_names": [
-           "field1"
-         ],
-         "key_types": [
-           "uint64"
-         ],
-         "type": "table1"
-       }
-     ],
-     "ricardian_clauses": [],
-     "error_messages": [],
-     "abi_extensions": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(all_indexes, all_indexes_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_unable_to_determine_index, abi_gen_helper)
-{ try {
-
-   const char* unable_to_determine_index = R"=====(
-   #include <eosiolib/types.h>
-
-   //@abi table
-   struct table1 {
-      uint32_t field1;
-      uint64_t field2;
-   };
-
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(unable_to_determine_index, ""), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_long_field_name, abi_gen_helper)
-{ try {
-
-   //TODO: full action / full table
-  // typedef fixed_string16 FieldName;
-   const char* long_field_name = R"=====(
-   #include <eosiolib/types.h>
-
-   //@abi table
-   struct table1 {
-      uint64_t thisisaverylongfieldname;
-   };
-
-   )=====";
-
-   BOOST_TEST( generate_abi(long_field_name, "{}") == false );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_long_type_name, abi_gen_helper)
-{ try {
-
-   const char* long_type_name = R"=====(
-   #include <eosiolib/types.h>
-
-   struct this_is_a_very_very_very_very_long_type_name {
-      uint64_t field;
-   };
-
-   //@abi table
-   struct table1 {
-      this_is_a_very_very_very_very_long_type_name field1;
-   };
-
-   )=====";
-
-
-   BOOST_TEST( generate_abi(long_type_name, "{}") == false );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_same_type_different_namespace, abi_gen_helper)
-{ try {
-
-   const char* same_type_different_namespace = R"=====(
-   #include <eosiolib/types.h>
-
-   namespace A {
-     //@abi table
-     struct table1 {
-        uint64_t field1;
-     };
-   }
-
-   namespace B {
-     //@abi table
-     struct table1 {
-        uint64_t field2;
-     };
-   }
-
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(same_type_different_namespace, ""), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_bad_index_type, abi_gen_helper)
-{ try {
-
-   const char* bad_index_type = R"=====(
-   #include <eosiolib/types.h>
-
-   //@abi table table1 i128i128
-   struct table1 {
-      uint32_t key;
-      uint64_t field1;
-      uint64_t field2;
-   };
-
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(bad_index_type, "{}"), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_full_table_decl, abi_gen_helper)
-{ try {
-
-   const char* full_table_decl = R"=====(
-   #include <eosiolib/types.hpp>
-
-   //@abi table table1 i64
-   class table1 {
-   public:
-      uint64_t  id;
-      eosio::name name;
-      uint32_t  age;
-   };
-
-   )=====";
-
-   const char* full_table_decl_abi = R"=====(
-   {
-       "version": "eosio::abi/1.0",
-       "types": [],
-       "structs": [{
-          "name" : "table1",
-          "base" : "",
-          "fields" : [{
-            "name" : "id",
-            "type" : "uint64"
-          },{
-            "name" : "name",
-            "type" : "name"
-          },{
-            "name" : "age",
-            "type" : "uint32"
-          }]
-       }],
-       "actions": [],
-       "tables": [
-        {
-          "name": "table1",
-          "type": "table1",
-          "index_type": "i64",
-          "key_names": [
-            "id"
-          ],
-          "key_types": [
-            "uint64"
-          ]
-        }],
-       "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(full_table_decl, full_table_decl_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_union_table, abi_gen_helper)
-{ try {
-
-   const char* union_table = R"=====(
-   #include <eosiolib/types.h>
-
-   //@abi table
-   union table1 {
-      uint64_t field1;
-      uint32_t field2;
-   };
-
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(union_table, ""), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_same_action_different_type, abi_gen_helper)
-{ try {
-
-   const char* same_action_different_type = R"=====(
-   #include <eosiolib/types.h>
-
-   //@abi action action1
-   struct table1 {
-      uint64_t field1;
-   };
-
-   //@abi action action1
-   struct table2 {
-      uint64_t field1;
-   };
-
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(same_action_different_type, ""), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_template_base, abi_gen_helper)
-{ try {
-
-   const char* template_base = R"=====(
-   #include <eosiolib/types.h>
-
-   template<typename T>
-   class base {
-      T field;
-   };
-
-   typedef base<uint32_t> base32;
-
-   //@abi table table1 i64
-   class table1 : base32 {
-   public:
-      uint64_t id;
-   };
-
-   )=====";
-
-   const char* template_base_abi = R"=====(
-   {
-       "version": "eosio::abi/1.0",
-       "types": [],
-       "structs": [{
-          "name" : "base32",
-          "base" : "",
-          "fields" : [{
-            "name" : "field",
-            "type" : "uint32"
-          }]
-       },{
-          "name" : "table1",
-          "base" : "base32",
-          "fields" : [{
-            "name" : "id",
-            "type" : "uint64"
-          }]
-       }],
-       "actions": [],
-       "tables": [
-        {
-          "name": "table1",
-          "type": "table1",
-          "index_type": "i64",
-          "key_names": [
-            "id"
-          ],
-          "key_types": [
-            "uint64"
-          ]
-        }],
-       "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(template_base, template_base_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_action_and_table, abi_gen_helper)
-{ try {
-
-   const char* action_and_table = R"=====(
-   #include <eosiolib/types.h>
-
-  /* @abi table
-   * @abi action
-   */
-   class table_action {
-   public:
-      uint64_t id;
-   };
-
-   )=====";
-
-   const char* action_and_table_abi = R"=====(
-   {
-       "version": "eosio::abi/1.0",
-       "types": [],
-       "structs": [{
-          "name" : "table_action",
-          "base" : "",
-          "fields" : [{
-            "name" : "id",
-            "type" : "uint64"
-          }]
-       }],
-       "actions": [{
-          "name" : "tableaction",
-          "type" : "table_action",
-          "ricardian_contract" : ""
-       }],
-       "tables": [
-        {
-          "name": "tableaction",
-          "type": "table_action",
-          "index_type": "i64",
-          "key_names": [
-            "id"
-          ],
-          "key_types": [
-            "uint64"
-          ]
-        }],
-       "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(action_and_table, action_and_table_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_simple_typedef, abi_gen_helper)
-{ try {
-
-   const char* simple_typedef = R"=====(
-   #include <eosiolib/types.hpp>
-
-   using namespace eosio;
-
-   struct common_params {
-      uint64_t c1;
-      uint64_t c2;
-      uint64_t c3;
-   };
-
-   typedef common_params my_base_alias;
-
-   //@abi action
-   struct main_action : my_base_alias {
-      uint64_t param1;
-   };
-
-   )=====";
-
-   const char* simple_typedef_abi = R"=====(
-   {
-       "version": "eosio::abi/1.0",
-       "types": [{
-          "new_type_name" : "my_base_alias",
-          "type" : "common_params"
-       }],
-       "structs": [{
-          "name" : "common_params",
-          "base" : "",
-          "fields" : [{
-            "name" : "c1",
-            "type" : "uint64"
-          },{
-            "name" : "c2",
-            "type" : "uint64"
-          },{
-            "name" : "c3",
-            "type" : "uint64"
-          }]
-       },{
-          "name" : "main_action",
-          "base" : "my_base_alias",
-          "fields" : [{
-            "name" : "param1",
-            "type" : "uint64"
-          }]
-       }],
-       "actions": [{
-          "name" : "mainaction",
-          "type" : "main_action",
-          "ricardian_contract" : ""
-       }],
-       "tables": [],
-       "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(simple_typedef, simple_typedef_abi) == true );
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_field_typedef, abi_gen_helper)
-{ try {
-
-   const char* field_typedef = R"=====(
-   #include <eosiolib/types.hpp>
-
-   using namespace eosio;
-
-   typedef name my_name_alias;
-
-   struct complex_field {
-      uint64_t  f1;
-      uint32_t  f2;
-   };
-
-   typedef complex_field my_complex_field_alias;
-
-   //@abi table
-   struct table1 {
-      uint64_t               field1;
-      my_complex_field_alias field2;
-      my_name_alias          name;
-   };
-
-   )=====";
-
-   const char* field_typedef_abi = R"=====(
-   {
-       "version": "eosio::abi/1.0",
-       "types": [{
-          "new_type_name" : "my_complex_field_alias",
-          "type" : "complex_field"
-       },{
-          "new_type_name" : "my_name_alias",
-          "type" : "name"
-       }],
-       "structs": [{
-          "name" : "complex_field",
-          "base" : "",
-          "fields" : [{
-            "name": "f1",
-            "type": "uint64"
-          }, {
-            "name": "f2",
-            "type": "uint32"
-          }]
-       },{
-          "name" : "table1",
-          "base" : "",
-          "fields" : [{
-            "name": "field1",
-            "type": "uint64"
-          },{
-            "name": "field2",
-            "type": "my_complex_field_alias"
-          },{
-            "name": "name",
-            "type": "my_name_alias"
-          }]
-       }],
-       "actions": [],
-       "tables": [{
-          "name": "table1",
-          "type": "table1",
-          "index_type": "i64",
-          "key_names": [
-            "field1"
-          ],
-          "key_types": [
-            "uint64"
-          ]
-        }],
-       "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(field_typedef, field_typedef_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_vector_of_POD, abi_gen_helper)
-{ try {
-
-   const char* abigen_vector_of_POD = R"=====(
-   #include <vector>
-   #include <string>
-   #include <eosiolib/types.hpp>
-
-   using namespace eosio;
-   using namespace std;
-
-   //@abi table
-   struct table1 {
-      uint64_t         field1;
-      vector<uint64_t> uints64;
-      vector<uint32_t> uints32;
-      vector<uint16_t> uints16;
-      vector<uint8_t>  uints8;
-   };
-
-   )=====";
-
-   const char* abigen_vector_of_POD_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [],
-     "structs": [{
-         "name": "table1",
-         "base": "",
-         "fields": [{
-             "name": "field1",
-             "type": "uint64"
-           },{
-             "name": "uints64",
-             "type": "uint64[]"
-           },{
-             "name": "uints32",
-             "type": "uint32[]"
-           },{
-             "name": "uints16",
-             "type": "uint16[]"
-           },{
-             "name": "uints8",
-             "type": "uint8[]"
-           }
-         ]
-       }
-     ],
-     "actions": [],
-     "tables": [{
-         "name": "table1",
-         "index_type": "i64",
-         "key_names": [
-           "field1"
-         ],
-         "key_types": [
-           "uint64"
-         ],
-         "type": "table1"
-       }
-     ],
-    "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(abigen_vector_of_POD, abigen_vector_of_POD_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_vector_of_structs, abi_gen_helper)
-{ try {
-
-   const char* abigen_vector_of_structs = R"=====(
-   #include <vector>
-   #include <string>
-   #include <eosiolib/types.hpp>
-
-   using namespace eosio;
-   using namespace std;
-
-   struct my_struct {
-      vector<uint64_t> uints64;
-      vector<uint32_t> uints32;
-      vector<uint16_t> uints16;
-      vector<uint8_t>  uints8;
-      string           str;
-   };
-
-   //@abi table
-   struct table1 {
-      uint64_t          field1;
-      vector<my_struct> field2;
-   };
-
-   )=====";
-
-   const char* abigen_vector_of_structs_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [],
-     "structs": [{
-         "name": "my_struct",
-         "base": "",
-         "fields": [{
-             "name": "uints64",
-             "type": "uint64[]"
-           },{
-             "name": "uints32",
-             "type": "uint32[]"
-           },{
-             "name": "uints16",
-             "type": "uint16[]"
-           },{
-             "name": "uints8",
-             "type": "uint8[]"
-           },{
-             "name": "str",
-             "type": "string"
-           }
-         ]
-       },{
-         "name": "table1",
-         "base": "",
-         "fields": [{
-             "name": "field1",
-             "type": "uint64"
-           },{
-             "name": "field2",
-             "type": "my_struct[]"
-           }
-         ]
-       }
-     ],
-     "actions": [],
-     "tables": [{
-         "name": "table1",
-         "index_type": "i64",
-         "key_names": [
-           "field1"
-         ],
-         "key_types": [
-           "uint64"
-         ],
-         "type": "table1"
-       }
-     ],
-    "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(abigen_vector_of_structs, abigen_vector_of_structs_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_vector_multidimension, abi_gen_helper)
-{ try {
-
-   const char* abigen_vector_multidimension = R"=====(
-   #include <vector>
-   #include <string>
-   #include <eosiolib/types.hpp>
-
-   using namespace eosio;
-   using namespace std;
-
-   //@abi table
-   struct table1 {
-      uint64_t                 field1;
-      vector<vector<uint64_t>> field2;
-   };
-
-   )=====";
-
-   BOOST_CHECK_EXCEPTION( generate_abi(abigen_vector_multidimension, ""), eosio::abi_generation_exception, abi_gen_helper::is_abi_generation_exception );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_vector_alias, abi_gen_helper)
-{ try {
-
-   const char* abigen_vector_alias = R"=====(
-   #include <string>
-   #include <vector>
-   #include <eosiolib/types.hpp>
-   #include <eosiolib/print.hpp>
-
-   using namespace std;
-
-   struct row {
-    std::vector<uint32_t> cells;
-   };
-
-   typedef vector<row> array_of_rows;
-
-   //@abi action
-   struct my_action {
-     uint64_t id;
-     array_of_rows rows;
-   };
-
-   )=====";
-
-   const char* abigen_vector_alias_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [{
-         "new_type_name": "array_of_rows",
-         "type": "row[]"
-       }
-     ],
-     "structs": [{
-         "name": "row",
-         "base": "",
-         "fields": [{
-             "name": "cells",
-             "type": "uint32[]"
-           }
-         ]
-       },{
-         "name": "my_action",
-         "base": "",
-         "fields": [{
-             "name": "id",
-             "type": "uint64"
-           },{
-             "name": "rows",
-             "type": "array_of_rows"
-           }
-         ]
-       }
-     ],
-     "actions": [{
-         "name": "myaction",
-         "type": "my_action",
-         "ricardian_contract": ""
-       }
-     ],
-     "tables": [],
-     "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(abigen_vector_alias, abigen_vector_alias_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_eosioabi_macro, abi_gen_helper)
-{ try {
-
-   const char* abigen_eosioabi_macro = R"=====(
-
-      #pragma GCC diagnostic push
-      #pragma GCC diagnostic ignored "-Wpointer-bool-conversion"
-
-      #include <eosiolib/eosio.hpp>
-      #include <eosiolib/print.hpp>
-
-
-      using namespace eosio;
-
-      struct hello : public eosio::contract {
-        public:
-            using contract::contract;
-
-            void hi( name user ) {
-               print( "Hello, ", name{user} );
-            }
-
-            void bye( name user ) {
-               print( "Bye, ", name{user} );
-            }
-      };
-
-      EOSIO_ABI(hello,(hi))
-
-      #pragma GCC diagnostic pop
-
-   )=====";
-
-   const char* abigen_eosioabi_macro_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [],
-     "structs": [{
-         "name": "hi",
-         "base": "",
-         "fields": [{
-             "name": "user",
-             "type": "name"
-           }
-         ]
-       }
-     ],
-     "actions": [{
-         "name": "hi",
-         "type": "hi"
-       }
-     ],
-     "tables": [],
-     "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(abigen_eosioabi_macro, abigen_eosioabi_macro_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_contract_inheritance, abi_gen_helper)
-{ try {
-
-   const char* abigen_contract_inheritance = R"=====(
-      #pragma GCC diagnostic push
-      #pragma GCC diagnostic ignored "-Wpointer-bool-conversion"
-
-      #include <eosiolib/eosio.hpp>
-      #include <eosiolib/print.hpp>
-
-
-      using namespace eosio;
-
-      struct hello : public eosio::contract {
-        public:
-            using contract::contract;
-
-            void hi( name user ) {
-               print( "Hello, ", name{user} );
-            }
-      };
-
-      struct new_hello : hello {
-        public:
-            new_hello(account_name self) : hello(self) {}
-            void bye( name user ) {
-               print( "Bye, ", name{user} );
-            }
-      };
-
-      EOSIO_ABI(new_hello,(hi)(bye))
-
-      #pragma GCC diagnostic pop
-   )=====";
-
-   const char* abigen_contract_inheritance_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [],
-     "structs": [{
-         "name": "hi",
-         "base": "",
-         "fields": [{
-             "name": "user",
-             "type": "name"
-           }
-         ]
-       },{
-         "name": "bye",
-         "base": "",
-         "fields": [{
-             "name": "user",
-             "type": "name"
-           }
-         ]
-       }
-     ],
-     "actions": [{
-         "name": "hi",
-         "type": "hi"
-       },{
-         "name": "bye",
-         "type": "bye"
-       }
-     ],
-     "tables": [],
-     "ricardian_clauses": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(abigen_contract_inheritance, abigen_contract_inheritance_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
-
-BOOST_FIXTURE_TEST_CASE(abigen_no_eosioabi_macro, abi_gen_helper)
-{ try {
-
-   const char* abigen_no_eosioabi_macro = R"=====(
-      #pragma GCC diagnostic push
-      #pragma GCC diagnostic ignored "-Wpointer-bool-conversion"
-      #include <eosiolib/eosio.hpp>
-      #include <eosiolib/print.hpp>
-      #pragma GCC diagnostic pop
-
-      using namespace eosio;
-
-      struct hello : public eosio::contract {
-        public:
-            using contract::contract;
-
-            //@abi action
-            void hi( name user ) {
-               print( "Hello, ", name{user} );
-            }
-
-            //@abi action
-            void bye( name user ) {
-               print( "Bye, ", name{user} );
-            }
-
-           void apply( account_name contract, account_name act ) {
-              auto& thiscontract = *this;
-              switch( act ) {
-                 EOSIO_API( hello, (hi)(bye))
-              };
-           }
-      };
-
-      extern "C" {
-         [[noreturn]] void apply( uint64_t receiver, uint64_t code, uint64_t action ) {
-            hello  h( receiver );
-            h.apply( code, action );
-            eosio_exit(0);
-         }
-      }
-   )=====";
-
-   const char* abigen_no_eosioabi_macro_abi = R"=====(
-   {
-     "version": "eosio::abi/1.0",
-     "types": [],
-     "structs": [{
-         "name": "hi",
-         "base": "",
-         "fields": [{
-             "name": "user",
-             "type": "name"
-           }
-         ]
-       },{
-         "name": "bye",
-         "base": "",
-         "fields": [{
-             "name": "user",
-             "type": "name"
-           }
-         ]
-       }
-     ],
-     "actions": [{
-         "name": "hi",
-         "type": "hi",
-         "ricardian_contract": ""
-       },{
-         "name": "bye",
-         "type": "bye",
-         "ricardian_contract": ""
-       }
-     ],
-     "tables": [],
-     "ricardian_clauses": [],
-     "error_messages": [],
-     "abi_extensions": []
-   }
-   )=====";
-
-   BOOST_TEST( generate_abi(abigen_no_eosioabi_macro, abigen_no_eosioabi_macro_abi) == true );
-
-} FC_LOG_AND_RETHROW() }
 
 BOOST_AUTO_TEST_CASE(general)
 { try {
@@ -2190,13 +895,13 @@ BOOST_AUTO_TEST_CASE(updateauth_test)
    BOOST_TEST("updauth.prnt" == updauth.parent);
    BOOST_TEST(2147483145u == updauth.auth.threshold);
 
-   BOOST_TEST_REQUIRE(2 == updauth.auth.keys.size());
+   BOOST_TEST_REQUIRE(2u == updauth.auth.keys.size());
    BOOST_TEST("EOS65rXebLhtk2aTTzP4e9x1AQZs7c5NNXJp89W8R3HyaA6Zyd4im" == (std::string)updauth.auth.keys[0].key);
    BOOST_TEST(57005u == updauth.auth.keys[0].weight);
    BOOST_TEST("EOS5eVr9TVnqwnUBNwf9kwMTbrHvX5aPyyEG97dz2b2TNeqWRzbJf" == (std::string)updauth.auth.keys[1].key);
    BOOST_TEST(57605u == updauth.auth.keys[1].weight);
 
-   BOOST_TEST_REQUIRE(2 == updauth.auth.accounts.size());
+   BOOST_TEST_REQUIRE(2u == updauth.auth.accounts.size());
    BOOST_TEST("prm.acct1" == updauth.auth.accounts[0].permission.actor);
    BOOST_TEST("prm.prm1" == updauth.auth.accounts[0].permission.permission);
    BOOST_TEST(53005u == updauth.auth.accounts[0].weight);
@@ -2294,13 +999,13 @@ BOOST_AUTO_TEST_CASE(newaccount_test)
 
    BOOST_TEST(2147483145u == newacct.owner.threshold);
 
-   BOOST_TEST_REQUIRE(2 == newacct.owner.keys.size());
+   BOOST_TEST_REQUIRE(2u == newacct.owner.keys.size());
    BOOST_TEST("EOS65rXebLhtk2aTTzP4e9x1AQZs7c5NNXJp89W8R3HyaA6Zyd4im" == (std::string)newacct.owner.keys[0].key);
    BOOST_TEST(57005u == newacct.owner.keys[0].weight);
    BOOST_TEST("EOS5eVr9TVnqwnUBNwf9kwMTbrHvX5aPyyEG97dz2b2TNeqWRzbJf" == (std::string)newacct.owner.keys[1].key);
    BOOST_TEST(57605u == newacct.owner.keys[1].weight);
 
-   BOOST_TEST_REQUIRE(2 == newacct.owner.accounts.size());
+   BOOST_TEST_REQUIRE(2u == newacct.owner.accounts.size());
    BOOST_TEST("prm.acct1" == newacct.owner.accounts[0].permission.actor);
    BOOST_TEST("prm.prm1" == newacct.owner.accounts[0].permission.permission);
    BOOST_TEST(53005u == newacct.owner.accounts[0].weight);
@@ -2310,13 +1015,13 @@ BOOST_AUTO_TEST_CASE(newaccount_test)
 
    BOOST_TEST(2146483145u == newacct.active.threshold);
 
-   BOOST_TEST_REQUIRE(2 == newacct.active.keys.size());
+   BOOST_TEST_REQUIRE(2u == newacct.active.keys.size());
    BOOST_TEST("EOS65rXebLhtk2aTTzP4e9x1AQZs7c5NNXJp89W8R3HyaA6Zyd4im" == (std::string)newacct.active.keys[0].key);
    BOOST_TEST(57005u == newacct.active.keys[0].weight);
    BOOST_TEST("EOS5eVr9TVnqwnUBNwf9kwMTbrHvX5aPyyEG97dz2b2TNeqWRzbJf" == (std::string)newacct.active.keys[1].key);
    BOOST_TEST(57605u == newacct.active.keys[1].weight);
 
-   BOOST_TEST_REQUIRE(2 == newacct.active.accounts.size());
+   BOOST_TEST_REQUIRE(2u == newacct.active.accounts.size());
    BOOST_TEST("prm.acct1" == newacct.active.accounts[0].permission.actor);
    BOOST_TEST("prm.prm1" == newacct.active.accounts[0].permission.permission);
    BOOST_TEST(53005u == newacct.active.accounts[0].weight);
@@ -2598,22 +1303,22 @@ BOOST_AUTO_TEST_CASE(setabi_test)
    auto var = fc::json::from_string(abi_string);
    auto abi = var.as<abi_def>();
 
-   BOOST_TEST_REQUIRE(1 == abi.types.size());
+   BOOST_TEST_REQUIRE(1u == abi.types.size());
 
    BOOST_TEST("account_name" == abi.types[0].new_type_name);
    BOOST_TEST("name" == abi.types[0].type);
 
-   BOOST_TEST_REQUIRE(3 == abi.structs.size());
+   BOOST_TEST_REQUIRE(3u == abi.structs.size());
 
    BOOST_TEST("transfer_base" == abi.structs[0].name);
    BOOST_TEST("" == abi.structs[0].base);
-   BOOST_TEST_REQUIRE(1 == abi.structs[0].fields.size());
+   BOOST_TEST_REQUIRE(1u == abi.structs[0].fields.size());
    BOOST_TEST("memo" == abi.structs[0].fields[0].name);
    BOOST_TEST("string" == abi.structs[0].fields[0].type);
 
    BOOST_TEST("transfer" == abi.structs[1].name);
    BOOST_TEST("transfer_base" == abi.structs[1].base);
-   BOOST_TEST_REQUIRE(3 == abi.structs[1].fields.size());
+   BOOST_TEST_REQUIRE(3u == abi.structs[1].fields.size());
    BOOST_TEST("from" == abi.structs[1].fields[0].name);
    BOOST_TEST("account_name" == abi.structs[1].fields[0].type);
    BOOST_TEST("to" == abi.structs[1].fields[1].name);
@@ -2623,23 +1328,23 @@ BOOST_AUTO_TEST_CASE(setabi_test)
 
    BOOST_TEST("account" == abi.structs[2].name);
    BOOST_TEST("" == abi.structs[2].base);
-   BOOST_TEST_REQUIRE(2 == abi.structs[2].fields.size());
+   BOOST_TEST_REQUIRE(2u == abi.structs[2].fields.size());
    BOOST_TEST("account" == abi.structs[2].fields[0].name);
    BOOST_TEST("name" == abi.structs[2].fields[0].type);
    BOOST_TEST("balance" == abi.structs[2].fields[1].name);
    BOOST_TEST("uint64" == abi.structs[2].fields[1].type);
 
-   BOOST_TEST_REQUIRE(1 == abi.actions.size());
+   BOOST_TEST_REQUIRE(1u == abi.actions.size());
    BOOST_TEST("transfer" == abi.actions[0].name);
    BOOST_TEST("transfer" == abi.actions[0].type);
 
-   BOOST_TEST_REQUIRE(1 == abi.tables.size());
+   BOOST_TEST_REQUIRE(1u == abi.tables.size());
    BOOST_TEST("account" == abi.tables[0].name);
    BOOST_TEST("account" == abi.tables[0].type);
    BOOST_TEST("i64" == abi.tables[0].index_type);
-   BOOST_TEST_REQUIRE(1 == abi.tables[0].key_names.size());
+   BOOST_TEST_REQUIRE(1u == abi.tables[0].key_names.size());
    BOOST_TEST("account" == abi.tables[0].key_names[0]);
-   BOOST_TEST_REQUIRE(1 == abi.tables[0].key_types.size());
+   BOOST_TEST_REQUIRE(1u == abi.tables[0].key_types.size());
    BOOST_TEST("name" == abi.tables[0].key_types[0]);
 
    auto var2 = verify_byte_round_trip_conversion( abis, "abi_def", var );
@@ -2768,7 +1473,7 @@ public_key_type  get_public_key( name keyname, string role ) {
 BOOST_AUTO_TEST_CASE(packed_transaction)
 { try {
 
-   chain::transaction txn;
+   chain::signed_transaction txn;
    txn.ref_block_num = 1;
    txn.ref_block_prefix = 2;
    txn.expiration.from_iso_string("2021-12-20T15:30");
@@ -3528,6 +2233,8 @@ BOOST_AUTO_TEST_CASE(abi_deep_structs_validate)
 
 BOOST_AUTO_TEST_CASE(variants)
 {
+   using eosio::testing::fc_exception_message_starts_with;
+
    auto duplicate_variant_abi = R"({
       "version": "eosio::abi/1.1",
       "variants": [
@@ -3575,13 +2282,18 @@ BOOST_AUTO_TEST_CASE(variants)
       BOOST_CHECK_THROW( abi_serializer( fc::json::from_string(variant_abi_invalid_type).as<abi_def>(), max_serialization_time ), invalid_type_inside_abi );
 
       // expected array containing variant
-      BOOST_CHECK_THROW( abis.variant_to_binary("v1", fc::json::from_string(R"(9)"), max_serialization_time), abi_exception );
-      BOOST_CHECK_THROW( abis.variant_to_binary("v1", fc::json::from_string(R"([4])"), max_serialization_time), abi_exception );
-      BOOST_CHECK_THROW( abis.variant_to_binary("v1", fc::json::from_string(R"([4, 5])"), max_serialization_time), abi_exception );
-      BOOST_CHECK_THROW( abis.variant_to_binary("v1", fc::json::from_string(R"(["4", 5, 6])"), max_serialization_time), abi_exception );
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"(9)"), max_serialization_time),
+                             pack_exception, fc_exception_message_starts_with("Expected input to be an array of two items while processing variant 'v1'") );
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"([4])"), max_serialization_time),
+                             pack_exception, fc_exception_message_starts_with("Expected input to be an array of two items while processing variant 'v1") );
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"([4, 5])"), max_serialization_time),
+                             pack_exception, fc_exception_message_starts_with("Encountered non-string as first item of input array while processing variant 'v1") );
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"(["4", 5, 6])"), max_serialization_time),
+                             pack_exception, fc_exception_message_starts_with("Expected input to be an array of two items while processing variant 'v1'") );
 
       // type is not valid within this variant
-      BOOST_CHECK_THROW( abis.variant_to_binary("v1", fc::json::from_string(R"(["int9", 21])"), max_serialization_time), abi_exception );
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"(["int9", 21])"), max_serialization_time),
+                             pack_exception, fc_exception_message_starts_with("Specified type 'int9' in input array is not valid within the variant 'v1'") );
 
       verify_round_trip_conversion(abis, "v1", R"(["int8",21])", "0015");
       verify_round_trip_conversion(abis, "v1", R"(["string","abcd"])", "010461626364");
@@ -3594,6 +2306,8 @@ BOOST_AUTO_TEST_CASE(variants)
 
 BOOST_AUTO_TEST_CASE(extend)
 {
+   using eosio::testing::fc_exception_message_starts_with;
+
    auto abi = R"({
       "version": "eosio::abi/1.1",
       "structs": [
@@ -3603,18 +2317,27 @@ BOOST_AUTO_TEST_CASE(extend)
             {"name": "i2", "type": "int8$"},
             {"name": "a", "type": "int8[]$"},
             {"name": "o", "type": "int8?$"},
+         ]},
+         {"name": "s2", "base": "", "fields": [
+            {"name": "i0", "type": "int8"},
+            {"name": "i1", "type": "int8$"},
+            {"name": "i2", "type": "int8"},
          ]}
       ],
    })";
+   // NOTE: Ideally this ABI would be rejected during validation for an improper definition for struct "s2".
+   //       Such a check is not yet implemented during validation, but it can check during serialization.
 
    try {
       abi_serializer abis(fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
 
       // missing i1
-      BOOST_CHECK_THROW( abis.variant_to_binary("s", fc::json::from_string(R"({"i0":5})"), max_serialization_time), abi_exception );
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s", fc::json::from_string(R"({"i0":5})"), max_serialization_time),
+                             pack_exception, fc_exception_message_starts_with("Missing field 'i1' in input object while processing struct") );
 
       // Unexpected 'a'
-      BOOST_CHECK_THROW( abis.variant_to_binary("s", fc::json::from_string(R"({"i0":5,"i1":6,"a":[8,9,10]})"), max_serialization_time), pack_exception );
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s", fc::json::from_string(R"({"i0":5,"i1":6,"a":[8,9,10]})"), max_serialization_time),
+                             pack_exception, fc_exception_message_starts_with("Unexpected field 'a' found in input object while processing struct") );
 
       verify_round_trip_conversion(abis, "s", R"({"i0":5,"i1":6})", "0506");
       verify_round_trip_conversion(abis, "s", R"({"i0":5,"i1":6,"i2":7})", "050607");
@@ -3627,6 +2350,11 @@ BOOST_AUTO_TEST_CASE(extend)
       verify_round_trip_conversion(abis, "s", R"([5,6,7,[8,9,10]])", "0506070308090a", R"({"i0":5,"i1":6,"i2":7,"a":[8,9,10]})");
       verify_round_trip_conversion(abis, "s", R"([5,6,7,[8,9,10],null])", "0506070308090a00", R"({"i0":5,"i1":6,"i2":7,"a":[8,9,10],"o":null})");
       verify_round_trip_conversion(abis, "s", R"([5,6,7,[8,9,10],31])", "0506070308090a011f", R"({"i0":5,"i1":6,"i2":7,"a":[8,9,10],"o":31})");
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s2", fc::json::from_string(R"({"i0":1})"), max_serialization_time),
+                             abi_exception, fc_exception_message_starts_with("Encountered field 'i2' without binary extension designation while processing struct") );
+
+
    } FC_LOG_AND_RETHROW()
 }
 
@@ -3660,10 +2388,10 @@ BOOST_AUTO_TEST_CASE(abi_serialize_incomplete_json_array)
       abi_serializer abis( fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
 
       BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s", fc::json::from_string(R"([])"), max_serialization_time),
-                             pack_exception, fc_exception_message_starts_with("Early end to array specifying the fields of struct") );
+                             pack_exception, fc_exception_message_starts_with("Early end to input array specifying the fields of struct") );
 
       BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s", fc::json::from_string(R"([1,2])"), max_serialization_time),
-                             pack_exception, fc_exception_message_starts_with("Early end to array specifying the fields of struct") );
+                             pack_exception, fc_exception_message_starts_with("Early end to input array specifying the fields of struct") );
 
       verify_round_trip_conversion(abis, "s", R"([1,2,3])", "010203", R"({"i0":1,"i1":2,"i2":3})");
 
@@ -3672,7 +2400,7 @@ BOOST_AUTO_TEST_CASE(abi_serialize_incomplete_json_array)
 
 BOOST_AUTO_TEST_CASE(abi_serialize_incomplete_json_object)
 {
-   using eosio::testing::fc_exception_message_is;
+   using eosio::testing::fc_exception_message_starts_with;
 
    auto abi = R"({
       "version": "eosio::abi/1.0",
@@ -3692,10 +2420,10 @@ BOOST_AUTO_TEST_CASE(abi_serialize_incomplete_json_object)
       abi_serializer abis( fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
 
       BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s2", fc::json::from_string(R"({})"), max_serialization_time),
-                             pack_exception, fc_exception_message_is("Missing 'f0' in variant object") );
+                             pack_exception, fc_exception_message_starts_with("Missing field 'f0' in input object") );
 
       BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s2", fc::json::from_string(R"({"f0":{"i0":1}})"), max_serialization_time),
-                             pack_exception, fc_exception_message_is("Missing 'i1' in variant object") );
+                             pack_exception, fc_exception_message_starts_with("Missing field 'i1' in input object") );
 
       verify_round_trip_conversion(abis, "s2", R"({"f0":{"i0":1,"i1":2},"i2":3})", "010203");
 
@@ -3723,12 +2451,273 @@ BOOST_AUTO_TEST_CASE(abi_serialize_json_mismatching_type)
       abi_serializer abis( fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
 
       BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s2", fc::json::from_string(R"({"f0":1,"i1":2})"), max_serialization_time),
-                             pack_exception, fc_exception_message_is("Failed to serialize struct 's1' in variant object") );
+                             pack_exception, fc_exception_message_is("Unexpected input encountered while processing struct 's2.f0'") );
 
       verify_round_trip_conversion(abis, "s2", R"({"f0":{"i0":1},"i1":2})", "0102");
 
    } FC_LOG_AND_RETHROW()
 }
 
+// it is a bit odd to have an empty name for a field, but json seems to allow it
+BOOST_AUTO_TEST_CASE(abi_serialize_json_empty_name)
+{
+   using eosio::testing::fc_exception_message_is;
+
+   auto abi = R"({
+      "version": "eosio::abi/1.0",
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "", "type": "int8"},
+         ]}
+      ],
+   })";
+
+   try {
+      abi_serializer abis( fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
+
+      auto bin = abis.variant_to_binary("s1", fc::json::from_string(R"({"":1})"), max_serialization_time);
+
+      verify_round_trip_conversion(abis, "s1", R"({"":1})", "01");
+
+   } FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE(abi_serialize_detailed_error_messages)
+{
+   using eosio::testing::fc_exception_message_is;
+
+   auto abi = R"({
+      "version": "eosio::abi/1.1",
+      "types": [
+         {"new_type_name": "foo", "type": "s2"},
+         {"new_type_name": "bar", "type": "foo"},
+         {"new_type_name": "s1array", "type": "s1[]"},
+         {"new_type_name": "s1arrayarray", "type": "s1array[]"}
+      ],
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "i0", "type": "int8"},
+            {"name": "i1", "type": "int8"}
+         ]},
+         {"name": "s2", "base": "", "fields": [
+            {"name": "f0", "type": "s1"},
+            {"name": "i2", "type": "int8"}
+         ]},
+         {"name": "s3", "base": "s1", "fields": [
+            {"name": "i2", "type": "int8"},
+            {"name": "f3", "type": "v2"},
+            {"name": "f4", "type": "foo$"},
+            {"name": "f5", "type": "s1$"}
+         ]},
+         {"name": "s4", "base": "", "fields": [
+            {"name": "f0", "type": "int8[]"},
+            {"name": "f1", "type": "s1[]"}
+         ]},
+         {"name": "s5", "base": "", "fields": [
+            {"name": "f0", "type": "v2[]"},
+         ]},
+      ],
+      "variants": [
+         {"name": "v1", "types": ["s3", "int8", "s4"]},
+         {"name": "v2", "types": ["foo", "bar"]},
+      ],
+   })";
+
+   try {
+      abi_serializer abis( fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("bar", fc::json::from_string(R"({"f0":{"i0":1},"i2":3})"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's2.f0'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s3", fc::json::from_string(R"({"i0":1,"i2":3})"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's3'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s3", fc::json::from_string(R"({"i0":1,"i1":2,"i2":3,"f3":["s2",{}]})"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Specified type 's2' in input array is not valid within the variant 's3.f3'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s3", fc::json::from_string(R"({"i0":1,"i1":2,"i2":3,"f3":["bar",{"f0":{"i0":11},"i2":13}]})"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's3.f3.<variant(1)=bar>.f0'") );
+
+      verify_round_trip_conversion(abis, "s3", R"({"i0":1,"i1":2,"i2":3,"f3":["bar",{"f0":{"i0":11,"i1":12},"i2":13}]})", "010203010b0c0d");
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"(["s3",{"i0":1,"i1":2,"i2":3,"f3":["bar",{"f0":{"i0":11,"i1":12},"i2":13}],"f5":0}])"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Unexpected field 'f5' found in input object while processing struct 'v1.<variant(0)=s3>'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"(["s4",{"f0":[0,1],"f1":[{"i0":2,"i1":3},{"i1":5}]}])"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Missing field 'i0' in input object while processing struct 'v1.<variant(2)=s4>.f1[1]'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s2[]", fc::json::from_string(R"([{"f0":{"i0":1,"i1":2},"i2":3},{"f0":{"i0":4},"i2":6}])"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 'ARRAY[1].f0'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s5", fc::json::from_string(R"({"f0":[["bar",{"f0":{"i0":1,"i1":2},"i2":3}],["foo",{"f0":{"i0":4},"i2":6}]]})"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's5.f0[1].<variant(0)=foo>.f0'") );
+
+      verify_round_trip_conversion( abis, "s1arrayarray", R"([[{"i0":1,"i1":2},{"i0":3,"i1":4}],[{"i0":5,"i1":6},{"i0":7,"i1":8},{"i0":9,"i1":10}]])", "0202010203040305060708090a");
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s1arrayarray", fc::json::from_string(R"([[{"i0":1,"i1":2},{"i0":3,"i1":4}],[{"i0":6,"i1":6},{"i0":7,"i1":8},{"i1":10}]])"), max_serialization_time),
+                             pack_exception, fc_exception_message_is("Missing field 'i0' in input object while processing struct 'ARRAY[1][2]'") );
+   } FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE(abi_serialize_short_error_messages)
+{
+   using eosio::testing::fc_exception_message_is;
+
+   auto abi = R"({
+      "version": "eosio::abi/1.1",
+      "types": [
+         {"new_type_name": "foo", "type": "s2"},
+         {"new_type_name": "bar", "type": "foo"},
+         {"new_type_name": "s1array", "type": "s1[]"},
+         {"new_type_name": "s1arrayarray", "type": "s1array[]"}
+      ],
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "i0", "type": "int8"},
+            {"name": "i1", "type": "int8"}
+         ]},
+         {"name": "s2", "base": "", "fields": [
+            {"name": "f0", "type": "s1"},
+            {"name": "i2", "type": "int8"}
+         ]},
+         {"name": "very_very_very_very_very_very_very_very_very_very_long_struct_name_s3", "base": "s1", "fields": [
+            {"name": "i2", "type": "int8"},
+            {"name": "f3", "type": "v2"},
+            {"name": "f4", "type": "foo$"},
+            {"name": "very_very_very_very_very_very_very_very_very_very_long_field_name_f5", "type": "s1$"}
+         ]},
+         {"name": "s4", "base": "", "fields": [
+            {"name": "f0", "type": "int8[]"},
+            {"name": "f1", "type": "s1[]"}
+         ]},
+         {"name": "s5", "base": "", "fields": [
+            {"name": "f0", "type": "v2[]"},
+         ]},
+      ],
+      "variants": [
+         {"name": "v1", "types": ["very_very_very_very_very_very_very_very_very_very_long_struct_name_s3", "int8", "s4"]},
+         {"name": "v2", "types": ["foo", "bar"]},
+      ],
+   })";
+
+   try {
+      abi_serializer abis( fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("bar", fc::json::from_string(R"({"f0":{"i0":1},"i2":3})"), max_serialization_time, true),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's1'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary( "very_very_very_very_very_very_very_very_very_very_long_struct_name_s3",
+                                                     fc::json::from_string(R"({"i0":1,"i2":3})"), max_serialization_time, true ),
+                             pack_exception,
+                             fc_exception_message_is("Missing field 'i1' in input object while processing struct 'very_very_very_very_very_very_very_very_very_very_long_...ame_s3'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary( "very_very_very_very_very_very_very_very_very_very_long_struct_name_s3",
+                                                     fc::json::from_string(R"({"i0":1,"i1":2,"i2":3,"f3":["s2",{}]})"), max_serialization_time, true ),
+                             pack_exception, fc_exception_message_is("Specified type 's2' in input array is not valid within the variant 'v2'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary( "very_very_very_very_very_very_very_very_very_very_long_struct_name_s3",
+                                                     fc::json::from_string(R"({"i0":1,"i1":2,"i2":3,"f3":["bar",{"f0":{"i0":11},"i2":13}]})"), max_serialization_time, true ),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's1'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary( "v1",
+         fc::json::from_string(R"(["very_very_very_very_very_very_very_very_very_very_long_struct_name_s3",{"i0":1,"i1":2,"i2":3,"f3":["bar",{"f0":{"i0":11,"i1":12},"i2":13}],"very_very_very_very_very_very_very_very_very_very_long_field_name_f5":0}])"),
+                                                    max_serialization_time, true ),
+                             pack_exception,
+                             fc_exception_message_is("Unexpected field 'very_very_very_very_very_very_very_very_very_very_long_...ame_f5' found in input object while processing struct 'very_very_very_very_very_very_very_very_very_very_long_...ame_s3'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("v1", fc::json::from_string(R"(["s4",{"f0":[0,1],"f1":[{"i0":2,"i1":3},{"i1":5}]}])"), max_serialization_time, true),
+                             pack_exception, fc_exception_message_is("Missing field 'i0' in input object while processing struct 's1'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s2[]", fc::json::from_string(R"([{"f0":{"i0":1,"i1":2},"i2":3},{"f0":{"i0":4},"i2":6}])"), max_serialization_time, true),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's1'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s5", fc::json::from_string(R"({"f0":[["bar",{"f0":{"i0":1,"i1":2},"i2":3}],["foo",{"f0":{"i0":4},"i2":6}]]})"), max_serialization_time, true),
+                             pack_exception, fc_exception_message_is("Missing field 'i1' in input object while processing struct 's1'") );
+
+      BOOST_CHECK_EXCEPTION( abis.variant_to_binary("s1arrayarray", fc::json::from_string(R"([[{"i0":1,"i1":2},{"i0":3,"i1":4}],[{"i0":6,"i1":6},{"i0":7,"i1":8},{"i1":10}]])"), max_serialization_time, true),
+                             pack_exception, fc_exception_message_is("Missing field 'i0' in input object while processing struct 's1'") );
+   } FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE(abi_deserialize_detailed_error_messages)
+{
+   using eosio::testing::fc_exception_message_is;
+
+   auto abi = R"({
+      "version": "eosio::abi/1.1",
+      "types": [
+         {"new_type_name": "oint", "type": "int8?"},
+         {"new_type_name": "os1", "type": "s1?"}
+      ],
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "i0", "type": "int8"},
+            {"name": "i1", "type": "int8"}
+         ]},
+         {"name": "s2", "base": "", "fields": [
+            {"name": "f0", "type": "int8[]"},
+            {"name": "f1", "type": "s1[]"}
+         ]},
+         {"name": "s3", "base": "s1", "fields": [
+            {"name": "i3", "type": "int8"},
+            {"name": "i4", "type": "int8$"},
+            {"name": "i5", "type": "int8"}
+         ]},
+         {"name": "s4", "base": "", "fields": [
+            {"name": "f0", "type": "oint[]"}
+         ]},
+         {"name": "s5", "base": "", "fields": [
+            {"name": "f0", "type": "os1[]"},
+            {"name": "f1", "type": "v1[]"},
+         ]},
+         {"name": "s6", "base": "", "fields": [
+         ]},
+      ],
+      "variants": [
+         {"name": "v1", "types": ["int8", "s1"]},
+      ],
+   })";
+
+   try {
+      abi_serializer abis( fc::json::from_string(abi).as<abi_def>(), max_serialization_time );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s2", fc::variant("020102").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Stream unexpectedly ended; unable to unpack field 'f1' of struct 's2'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s2", fc::variant("0201020103").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Stream unexpectedly ended; unable to unpack field 'i1' of struct 's2.f1[0]'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s2", fc::variant("020102ff").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Unable to unpack size of array 's2.f1'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s3", fc::variant("010203").as<bytes>(), max_serialization_time),
+                             abi_exception, fc_exception_message_is("Encountered field 'i5' without binary extension designation while processing struct 's3'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s3", fc::variant("02010304").as<bytes>(), max_serialization_time),
+                             abi_exception, fc_exception_message_is("Encountered field 'i5' without binary extension designation while processing struct 's3'") );
+
+      // This check actually points to a problem with the current abi_serializer.
+      // An array of optionals (which is unfortunately not rejected in validation) leads to an unpack_exception here because one of the optional elements is not present.
+      // However, abis.binary_to_variant("s4", fc::variant("03010101020103").as<bytes>(), max_serialization_time) would work just fine!
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s4", fc::variant("030101000103").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Invalid packed array 's4.f0[1]'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s4", fc::variant("020101").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Unable to unpack optional of built-in type 'int8' while processing 's4.f0[1]'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s5", fc::variant("02010102").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Unable to unpack presence flag of optional 's5.f0[1]'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s5", fc::variant("0001").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Unable to unpack tag of variant 's5.f1[0]'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s5", fc::variant("00010501").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Unpacked invalid tag (5) for variant 's5.f1[0]'") );
+
+      BOOST_CHECK_EXCEPTION( abis.binary_to_variant("s5", fc::variant("00010101").as<bytes>(), max_serialization_time),
+                             unpack_exception, fc_exception_message_is("Stream unexpectedly ended; unable to unpack field 'i1' of struct 's5.f1[0].<variant(1)=s1>'") );
+
+   } FC_LOG_AND_RETHROW()
+}
 
 BOOST_AUTO_TEST_SUITE_END()
