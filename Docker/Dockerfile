@@ -1,6 +1,13 @@
-FROM eosio/builder as builder
+FROM vankiaio/builder as builder
 ARG branch=master
 ARG symbol=VKT
+
+RUN apt-get update && apt-get install -y \
+    clang-6.0 \
+    && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-6.0 1000 \
+    && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-6.0 1000 \
+    && update-alternatives --config clang \
+    && update-alternatives --config clang++ 
 
 RUN git clone -b $branch https://github.com/vankiaio/vkt.git --recursive \
     && cd vkt && echo "$branch:$(git rev-parse HEAD)" > /etc/eosio-version \
