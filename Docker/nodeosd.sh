@@ -14,7 +14,7 @@ fi
 if [ -d '/opt/eosio/bin/data-dir/contracts' ]; then
     echo
   else
-    cp -r /contracts /opt/eosio/bin/data-dir
+#    cp -r /contracts /opt/eosio/bin/data-dir
 fi
 
 while :; do
