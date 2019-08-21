@@ -38,11 +38,11 @@ const static uint64_t active_name = N(active);
 const static uint64_t owner_name  = N(owner);
 const static uint64_t eosio_any_name = N(eosio.any);
 const static uint64_t eosio_code_name = N(eosio.code);
-//Begin: Mod by LIYI Date:2018-08-30
+//Begin: Mod by LIYI Date:2019-08-18
 // BP Output block interval adjustment 
 //const static int      block_interval_ms = 500;
-const static int      block_interval_ms = 3000;
-//End: Mod by LIYI Date:2018-08-30
+const static int      block_interval_ms = 2000;
+//End: Mod by LIYI Date:2019-08-18
 const static int      block_interval_us = block_interval_ms*1000;
 const static uint64_t block_timestamp_epoch = 946684800000ll; // epoch is year 2000.
 
