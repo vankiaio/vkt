@@ -606,7 +606,7 @@ hblf_mongo_db_plugin_impl::add_action_trace( mongocxx::bulk_write& bulk_action_t
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
 
-   if(!executed || atrace.receiver != N(vankia.trans)) {
+   if(!executed || atrace.receiver != N(vankia.hblf)) {
       return false;
    }
 
@@ -668,7 +668,7 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    mongocxx::options::bulk_write bulk_opts;
    bulk_opts.ordered(false);
    mongocxx::bulk_write bulk_action_student_traces = _student_traces.create_bulk_write(bulk_opts);
-   mongocxx::bulk_write bulk_action_teacher_traces = _student_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_teacher_traces = _teacher_traces.create_bulk_write(bulk_opts);
    bool write_student_atraces = false;
    bool write_teacher_atraces = false;
    bool write_ttrace = false; // filters apply to transaction_traces as well
@@ -734,7 +734,7 @@ void create_student( mongocxx::collection& students, const bsoncxx::document::vi
       std::cout << "create_student userId " << userId_ele.get_utf8().value << std::endl;
       if( !students.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
-         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students");
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert student");
       }
    } catch (...) {
       handle_mongo_exception( "create_student", __LINE__ );
@@ -758,7 +758,7 @@ void update_student( mongocxx::collection& students, const bsoncxx::document::vi
       std::cout << "update_student userId " << userId_ele.get_utf8().value << std::endl;
       if( !students.update_one( make_document( kvp("userId", userId_ele.get_value())), update.view(), update_opts )) {
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
-         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update students");
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update student");
       }
    } catch (...) {
       handle_mongo_exception( "update_student", __LINE__ );
@@ -775,10 +775,75 @@ void delete_student( mongocxx::collection& students, const bsoncxx::document::vi
       std::cout << "delete_student userId " << userId_ele.get_utf8().value << std::endl;
       if( !students.delete_one( make_document( kvp("userId", userId_ele.get_value())))) {
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
-         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete students");
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete student");
       }
    } catch (...) {
-      handle_mongo_exception( "update_student", __LINE__ );
+      handle_mongo_exception( "delete_student", __LINE__ );
+   }
+}
+
+void create_teacher( mongocxx::collection& teachers, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element userId_ele = data["userId"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "userId", userId_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "create_teacher userId " << userId_ele.get_utf8().value << std::endl;
+      if( !teachers.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert teacher");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_teacher", __LINE__ );
+   }
+}
+
+void update_teacher( mongocxx::collection& teachers, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+
+   bsoncxx::document::element userId_ele = data["userId"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "userId", userId_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "update_teacher userId " << userId_ele.get_utf8().value << std::endl;
+      if( !teachers.update_one( make_document( kvp("userId", userId_ele.get_value())), update.view(), update_opts )) {
+         // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update teacher");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_teacher", __LINE__ );
+   }
+}
+
+void delete_teacher( mongocxx::collection& teachers, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element userId_ele = data["userId"]; 
+   try {
+      std::cout << "delete_teacher userId " << userId_ele.get_utf8().value << std::endl;
+      if( !teachers.delete_one( make_document( kvp("userId", userId_ele.get_value())))) {
+         // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete teacher");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_teacher", __LINE__ );
    }
 }
 
@@ -818,6 +883,21 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
                std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
 
          delete_student( _students, datadoc, now );
+      }else if( act.name == addteachbase ) {
+         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+
+         create_teacher( _teachers, datadoc, now );
+      }else if( act.name == modteachbase ) {
+         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+
+         update_teacher( _teachers, datadoc, now );
+      }else if( act.name == delteachbase) {
+         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+
+         delete_teacher( _teachers, datadoc, now );
       }
       
    } catch( fc::exception& e ) {
