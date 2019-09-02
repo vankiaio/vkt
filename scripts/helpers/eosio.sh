@@ -39,6 +39,7 @@ function setup() {
         echo "ENABLE_COVERAGE_TESTING: ${ENABLE_COVERAGE_TESTING}"
         echo "ENABLE_DOXYGEN: ${ENABLE_DOXYGEN}"
         echo "ENABLE_MONGO: ${ENABLE_MONGO}"
+        echo "ENABLE_HBLF_MONGO: ${ENABLE_HBLF_MONGO}"
         echo "INSTALL_MONGO: ${INSTALL_MONGO}"
         echo "SUDO_LOCATION: ${SUDO_LOCATION}"
         echo "PIN_COMPILER: ${PIN_COMPILER}"

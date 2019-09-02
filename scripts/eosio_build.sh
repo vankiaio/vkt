@@ -43,13 +43,14 @@ function usage() {
   -c          Enable Code Coverage
   -d          Generate Doxygen
   -m          Build MongoDB dependencies
+  -H          Build HBLF MongoDB dependencies
    \\n" "$0" 1>&2
    exit 1
 }
 
 TIME_BEGIN=$( date -u +%s )
 if [ $# -ne 0 ]; then
-   while getopts "o:s:b:i:ycdhmPf" opt; do
+   while getopts "o:s:b:i:ycdhmPfH" opt; do
       case "${opt}" in
          o )
             options=( "Debug" "Release" "RelWithDebInfo" "MinSizeRel" )
@@ -89,6 +90,9 @@ if [ $# -ne 0 ]; then
          ;;
          m )
             ENABLE_MONGO=true
+         ;;
+         H )
+            ENABLE_HBLF_MONGO=true
          ;;
          P )
             PIN_COMPILER=true
@@ -213,6 +217,7 @@ fi
 execute cd $BUILD_DIR
 # LOCAL_CMAKE_FLAGS
 $ENABLE_MONGO && LOCAL_CMAKE_FLAGS="-DBUILD_MONGO_DB_PLUGIN=true ${LOCAL_CMAKE_FLAGS}" # Enable Mongo DB Plugin if user has enabled -m
+$ENABLE_HBLF_MONGO && LOCAL_CMAKE_FLAGS="-DBUILD_HBLF_MONGO_DB_PLUGIN=true ${LOCAL_CMAKE_FLAGS}" # Enable HBLF Mongo DB Plugin if user has enabled -hblf
 if $PIN_COMPILER; then
    CMAKE_PREFIX_PATHS="${CMAKE_PREFIX_PATHS};${LLVM_ROOT}"
    LOCAL_CMAKE_FLAGS="${PINNED_TOOLCHAIN} -DCMAKE_PREFIX_PATH='${CMAKE_PREFIX_PATHS}' ${LOCAL_CMAKE_FLAGS}"
