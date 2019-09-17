@@ -33,6 +33,7 @@
 #include <mongocxx/exception/operation_exception.hpp>
 #include <mongocxx/exception/logic_error.hpp>
 
+
 namespace fc { class variant; }
 
 namespace eosio {
@@ -139,6 +140,11 @@ public:
    mongocxx::collection _student_traces;
    mongocxx::collection _teachers;
    mongocxx::collection _teacher_traces;
+   mongocxx::collection _d20001;
+   mongocxx::collection _d20001_traces;
+   mongocxx::collection _d20002;
+   mongocxx::collection _d20002_traces;
+
    mongocxx::collection _accounts;
 
    size_t max_queue_size = 0;
@@ -184,11 +190,23 @@ public:
    static const action_name addteachbase;
    static const action_name modteachbase;
    static const action_name delteachbase;
+   static const action_name addd20001;          //添加体质健康信息的action名
+   static const action_name modd20001;        //修改体质健康信息的action名
+   static const action_name deld20001;           //删除体质健康信息的action名
+   static const action_name addd20002;         //添加体质健康信息明细的action名
+   static const action_name modd20002;       //修改体质健康信息明细的action名
+   static const action_name deld20002;          //修改体质健康信息明细的action名
 
    static const std::string students_col;
    static const std::string student_traces_col;
    static const std::string teachers_col;
    static const std::string teacher_traces_col;
+   static const std::string d20001_col;                 //体质健康信息表名
+   static const std::string d20001_traces_col;  //体质健康信息表trace表名
+   static const std::string d20002_col;                //体质健康信息明细表名
+   static const std::string d20002_traces_col; //体质健康信息明细trace表名
+
+
    static const std::string accounts_col;
 };
 
@@ -198,12 +216,23 @@ const action_name hblf_mongo_db_plugin_impl::delstudent = N(delstudent);
 const action_name hblf_mongo_db_plugin_impl::addteachbase = N(addteachbase);
 const action_name hblf_mongo_db_plugin_impl::modteachbase = N(modteachbase);
 const action_name hblf_mongo_db_plugin_impl::delteachbase = N(delteachbase);
+const action_name hblf_mongo_db_plugin_impl::addd20001 = N(addsecooofir);
+const action_name hblf_mongo_db_plugin_impl::modd20001 = N(modsecooofir);
+const action_name hblf_mongo_db_plugin_impl::deld20001 = N(delsecooofir);
+const action_name hblf_mongo_db_plugin_impl::addd20002 = N(addsecooosec);
+const action_name hblf_mongo_db_plugin_impl::modd20002 = N(modsecooosec);
+const action_name hblf_mongo_db_plugin_impl::deld20002 = N(delsecooosec);
+
 
 
 const std::string hblf_mongo_db_plugin_impl::students_col = "students";
 const std::string hblf_mongo_db_plugin_impl::student_traces_col = "student_traces";
 const std::string hblf_mongo_db_plugin_impl::teachers_col = "teachers";
 const std::string hblf_mongo_db_plugin_impl::teacher_traces_col = "teacher_traces";
+const std::string hblf_mongo_db_plugin_impl::d20001_col = "d20001";                                       //定义体质健康信息表名(集合名)
+const std::string hblf_mongo_db_plugin_impl::d20001_traces_col = "d20001_traces";        //定义体质健康信息traces表名(集合名)
+const std::string hblf_mongo_db_plugin_impl::d20002_col = "d20002";                                  //定义体质健康明细表名(mongo中存储的集合名)
+const std::string hblf_mongo_db_plugin_impl::d20002_traces_col = "d20002_traces";   //定义体质健康明细traces表名(mongo中存储的集合名)
 const std::string hblf_mongo_db_plugin_impl::accounts_col = "accounts";
 
 bool hblf_mongo_db_plugin_impl::filter_include( const account_name& receiver, const action_name& act_name,
@@ -358,7 +387,12 @@ void hblf_mongo_db_plugin_impl::consume_blocks() {
       _student_traces = mongo_conn[db_name][student_traces_col];
       _teachers = mongo_conn[db_name][teachers_col];
       _teacher_traces = mongo_conn[db_name][teacher_traces_col];
+      _d20001 = mongo_conn[db_name][d20001_col];
+      _d20001_traces = mongo_conn[db_name][d20001_traces_col];
+      _d20002 = mongo_conn[db_name][d20002_col];
+      _d20002_traces = mongo_conn[db_name][d20002_traces_col];
       _accounts = mongo_conn[db_name][accounts_col];
+
 
       while (true) {
          std::unique_lock<std::mutex> lock(mtx);
@@ -646,6 +680,8 @@ hblf_mongo_db_plugin_impl::add_action_trace( mongocxx::bulk_write& bulk_action_t
          action_traces_doc.append( kvp( "trx_status", std::string( t->receipt->status ) ) );
       }
       action_traces_doc.append( kvp( "createdAt", b_date{now} ) );
+     // action_traces_doc.append( kvp( "actNums",(t->action_traces.end() - t->action_traces.begin()) ) ); 
+      action_traces_doc.append( kvp( "actNums",int(t->action_traces.size()) ) ); 
 
       mongocxx::model::insert_one insert_op{action_traces_doc.view()};
       bulk_action_traces.append( insert_op );
@@ -669,8 +705,14 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    bulk_opts.ordered(false);
    mongocxx::bulk_write bulk_action_student_traces = _student_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_teacher_traces = _teacher_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d20001_traces = _d20001_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d20002_traces = _d20002_traces.create_bulk_write(bulk_opts);
+   
+   
    bool write_student_atraces = false;
    bool write_teacher_atraces = false;
+   bool write_d20001_atraces = false;
+   bool write_d20002_atraces = false;
    bool write_ttrace = false; // filters apply to transaction_traces as well
    bool executed = t->receipt.valid() && t->receipt->status == chain::transaction_receipt_header::executed;
 
@@ -680,6 +722,10 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
             write_student_atraces |= add_action_trace( bulk_action_student_traces, atrace, t, executed, now, write_ttrace );
          }else if(atrace.act.name == addteachbase || atrace.act.name == modteachbase || atrace.act.name == delteachbase){
             write_teacher_atraces |= add_action_trace( bulk_action_teacher_traces, atrace, t, executed, now, write_ttrace );
+         }else if(atrace.act.name == addd20001 || atrace.act.name == modd20001 || atrace.act.name == deld20001) {
+            write_d20001_atraces |= add_action_trace(bulk_action_d20001_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd20002 || atrace.act.name == modd20002 || atrace.act.name == deld20002){
+             write_d20002_atraces |= add_action_trace(bulk_action_d20002_traces,atrace,t,executed,now,write_ttrace);
          }
       } catch(...) {
          handle_mongo_exception("add action traces", __LINE__);
@@ -704,6 +750,26 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    if( write_teacher_atraces ) {
       try {
          if( !bulk_action_teacher_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+   if( write_d20001_atraces ) {
+      try {
+         if( !bulk_action_d20001_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+   if( write_d20002_atraces ) {
+      try {
+         if( !bulk_action_d20002_traces.execute() ) {
             EOS_ASSERT( false, chain::mongo_db_insert_fail,
                         "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
          }
@@ -847,6 +913,138 @@ void delete_teacher( mongocxx::collection& teachers, const bsoncxx::document::vi
    }
 }
 
+//创建体质健康信息
+void create_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& data,std::chrono::milliseconds& now)
+{
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+   bsoncxx::document::element tzjkid_ele = data["tzjkid"];
+   auto update = make_document(
+      kvp( "$set", make_document(   kvp( "tzjkid", tzjkid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "create_d20001 tzjkid " << tzjkid_ele.get_utf8().value << std::endl;
+      if( !d20001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert teacher");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d20001", __LINE__ );
+   }
+}
+
+//更新体质健康信息
+void update_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element tzjkid_ele = data["tzjkid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "tzjkid", tzjkid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ))));
+                                   // printf("update这里成功执行了%d",1);
+   try {
+      std::cout << "update_d20001 tzjkid" << tzjkid_ele.get_utf8().value << std::endl;
+      if( !d20001.update_one( make_document( kvp("tzjkid", tzjkid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d20001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d20001", __LINE__ );
+   }
+}
+//删除体质健康信息
+void delete_d20001( mongocxx::collection& d20001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element tzjkid_ele = data["tzjkid"]; 
+   try {
+      std::cout << "delete_d20001 tzjkid " << tzjkid_ele.get_utf8().value << std::endl;
+      if( !d20001.delete_one( make_document( kvp("tzjkid", tzjkid_ele.get_value())))) {
+         // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d20001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d20001", __LINE__ );
+   }
+}
+
+//创建体质健康明细表
+void create_d20002( mongocxx::collection& d20002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element xjh_ele = data["xjh"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "xjh", xjh_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "create_d20002 xjh" << xjh_ele.get_utf8().value << std::endl;
+      if( !d20002.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d20002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d20002", __LINE__ );
+   }
+}
+
+//更新体质健康明细表
+void update_d20002(mongocxx::collection& d20002,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element xjh_ele = data["xjh"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "xjh", xjh_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "update_d20002 xjh" << xjh_ele.get_utf8().value << std::endl;
+      if( !d20002.update_one( make_document( kvp("xjh", xjh_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d20002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d20002", __LINE__ );
+   }
+}
+
+//删除体质健康明细表
+void delete_d20002( mongocxx::collection& d20002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element xjh_ele = data["xjh"]; 
+   try {
+      std::cout << "delete_d20002 xjh " << xjh_ele.get_utf8().value << std::endl;
+      if( !d20002.delete_one( make_document( kvp("xjh", xjh_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d20002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d20002", __LINE__ );
+   }
+}
 }
 
 void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const bsoncxx::document::view& actdoc)
@@ -898,6 +1096,32 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
                std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
 
          delete_teacher( _teachers, datadoc, now );
+      }else if(act.name == addd20001){
+         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               create_d20001(_d20001,datadoc,now);
+      }else if(act.name == modd20001){
+            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               update_d20001(_d20001,datadoc,now);
+      }else if(act.name == deld20001){
+         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               delete_d20001(_d20001,datadoc,now);
+      }else if(act.name == addd20002){
+               std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               create_d20002(_d20002,datadoc,now);
+      }else if(act.name == modd20002)
+      {
+               std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               update_d20002(_d20002,datadoc,now);
+      }else if(act.name == deld20002)
+      {
+            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               delete_d20002(_d20002,datadoc,now);
       }
       
    } catch( fc::exception& e ) {
@@ -936,14 +1160,21 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
    auto teachers = mongo_conn[db_name][teachers_col];
    auto teacher_traces = mongo_conn[db_name][teacher_traces_col];
    auto accounts = mongo_conn[db_name][accounts_col];
-
-
+   auto d20001 = mongo_conn[db_name][d20001_col];
+    auto d20001_traces = mongo_conn[db_name][d20001_traces_col];
+    auto d20002 = mongo_conn[db_name][ d20002_col];
+    auto  d20002_traces = mongo_conn[db_name][ d20002_traces_col];
+   
    students.drop();
    student_traces.drop();
    teachers.drop();
    teacher_traces.drop();
    accounts.drop();
-   
+    d20001.drop();
+    d20001_traces.drop();   
+    d20002.drop();
+    d20002_traces.drop();
+
    ilog("done wipe_database");
 }
 
@@ -1033,6 +1264,19 @@ void hblf_mongo_db_plugin_impl::init() {
             auto accounts = mongo_conn[db_name][accounts_col];
             accounts.create_index( bsoncxx::from_json( R"xxx({ "name" : 1, "_id" : 1 })xxx" ));
 
+            //d20001 indexes
+            auto  d20001 = mongo_conn[db_name][ d20001_col];
+            d20001.create_index(bsoncxx::from_json( R"xxx({ "tzjkid" : 1, "_id" : 1 })xxx" ));
+
+            auto  d20001_traces =  mongo_conn[db_name][ d20001_traces_col];
+            d20001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d20002 indexes
+            auto  d20002 = mongo_conn[db_name][ d20002_col];
+             d20002.create_index(bsoncxx::from_json( R"xxx({ "xjh" : 1, "_id" : 1 })xxx" ));
+            auto  d20002_traces = mongo_conn[db_name][ d20002_traces_col];
+            d20002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
          } catch (...) {
             handle_mongo_exception( "create indexes", __LINE__ );
          }
@@ -1050,6 +1294,16 @@ void hblf_mongo_db_plugin_impl::init() {
             create_expiration_index( teacher_traces, expire_after_seconds );
             mongocxx::collection accounts = mongo_conn[db_name][accounts_col];
             create_expiration_index( accounts, expire_after_seconds );
+            mongocxx::collection d20001 = mongo_conn[db_name][d20001_col];
+            create_expiration_index( d20001, expire_after_seconds );
+            mongocxx::collection d20001_traces = mongo_conn[db_name][d20001_traces_col];
+            create_expiration_index( d20001_traces, expire_after_seconds );
+            mongocxx::collection d20002 = mongo_conn[db_name][d20002_col];
+            create_expiration_index( d20002, expire_after_seconds );
+            mongocxx::collection d20002_traces = mongo_conn[db_name][d20002_traces_col];
+            create_expiration_index( d20002_traces, expire_after_seconds );
+            
+
          } catch(...) {
             handle_mongo_exception( "create expiration indexes", __LINE__ );
          }
