@@ -1397,7 +1397,7 @@ void create_d50001( mongocxx::collection& d50001, const bsoncxx::document::view&
    }
 }
 
-//更新教师
+//更新教师教师职称评定
 void update_d50001(mongocxx::collection& d50001,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1421,7 +1421,7 @@ void update_d50001(mongocxx::collection& d50001,const bsoncxx::document::view& d
    }
 }
 
-//删除教师
+//删除教师职称评定
 void delete_d50001( mongocxx::collection& d50001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1438,7 +1438,7 @@ void delete_d50001( mongocxx::collection& d50001, const bsoncxx::document::view&
    }
 }
 
-//创建教师职称评定
+//创建教师教育经历
 void create_d50002( mongocxx::collection& d50002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1462,7 +1462,7 @@ void create_d50002( mongocxx::collection& d50002, const bsoncxx::document::view&
    }
 }
 
-//更新教师
+//更新教师教育经历
 void update_d50002(mongocxx::collection& d50002,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1485,7 +1485,7 @@ void update_d50002(mongocxx::collection& d50002,const bsoncxx::document::view& d
       handle_mongo_exception( "update_d50002", __LINE__ );
    }
 }
-//删除教师
+//删除教师教育经历
 void delete_d50002( mongocxx::collection& d50002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1502,7 +1502,7 @@ void delete_d50002( mongocxx::collection& d50002, const bsoncxx::document::view&
    }
 }
 
-//创建教师职称评定
+//创建教师联系方式信息
 void create_d50003( mongocxx::collection& d50003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1526,7 +1526,7 @@ void create_d50003( mongocxx::collection& d50003, const bsoncxx::document::view&
    }
 }
 
-//更新教师
+//更新教师联系方式信息
 void update_d50003(mongocxx::collection& d50003,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1550,7 +1550,7 @@ void update_d50003(mongocxx::collection& d50003,const bsoncxx::document::view& d
    }
 }
 
-//删除教师
+//删除教师联系方式信息
 void delete_d50003( mongocxx::collection& d50003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1567,7 +1567,7 @@ void delete_d50003( mongocxx::collection& d50003, const bsoncxx::document::view&
    }
 }
 
-//创建教师职称评定
+//创建教师政治面貌
 void create_d50004( mongocxx::collection& d50004, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1592,7 +1592,7 @@ void create_d50004( mongocxx::collection& d50004, const bsoncxx::document::view&
 }
 
 
-//更新教师
+//更新教师政治面貌
 void update_d50004(mongocxx::collection& d50004,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1616,7 +1616,7 @@ void update_d50004(mongocxx::collection& d50004,const bsoncxx::document::view& d
    }
 }
 
-//删除教师
+//删除教师政治面貌
 void delete_d50004( mongocxx::collection& d50004, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1633,7 +1633,7 @@ void delete_d50004( mongocxx::collection& d50004, const bsoncxx::document::view&
    }
 }
 
-//创建教师职称评定
+//创建教师聘任信息
 void create_d50005( mongocxx::collection& d50005, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1657,7 +1657,7 @@ void create_d50005( mongocxx::collection& d50005, const bsoncxx::document::view&
    }
 }
 
-//更新教师
+//更新教师聘任信息
 void update_d50005(mongocxx::collection& d50005,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1682,7 +1682,7 @@ void update_d50005(mongocxx::collection& d50005,const bsoncxx::document::view& d
 }
 
 
-//删除教师
+//删除教师聘任信息
 void delete_d50005( mongocxx::collection& d50005, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1698,7 +1698,7 @@ void delete_d50005( mongocxx::collection& d50005, const bsoncxx::document::view&
       handle_mongo_exception( "delete_d50005", __LINE__ );
    }
 }
-//创建教师职称评定
+//创建教师语言能力
 void create_d50006( mongocxx::collection& d50006, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1722,7 +1722,7 @@ void create_d50006( mongocxx::collection& d50006, const bsoncxx::document::view&
    }
 }
 
-//更新教师
+//更新教师语言能力
 void update_d50006(mongocxx::collection& d50006,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1747,7 +1747,7 @@ void update_d50006(mongocxx::collection& d50006,const bsoncxx::document::view& d
 }
 
 
-//删除教师
+//删除教师语言能力
 void delete_d50006( mongocxx::collection& d50006, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1763,7 +1763,7 @@ void delete_d50006( mongocxx::collection& d50006, const bsoncxx::document::view&
       handle_mongo_exception( "delete_d50006", __LINE__ );
    }
 }
-//创建教师职称评定
+//创建教师资格
 void create_d50007( mongocxx::collection& d50007, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1787,7 +1787,7 @@ void create_d50007( mongocxx::collection& d50007, const bsoncxx::document::view&
    }
 }
 
-//更新教师
+//更新教师资格
 void update_d50007(mongocxx::collection& d50007,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1811,7 +1811,7 @@ void update_d50007(mongocxx::collection& d50007,const bsoncxx::document::view& d
    }
 }
 
-//删除教师
+//删除教师资格
 void delete_d50007( mongocxx::collection& d50007, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1828,7 +1828,7 @@ void delete_d50007( mongocxx::collection& d50007, const bsoncxx::document::view&
    }
 }
 
-//创建教师职称评定
+//创建教师其他技能
 void create_d50008( mongocxx::collection& d50008, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1852,7 +1852,7 @@ void create_d50008( mongocxx::collection& d50008, const bsoncxx::document::view&
    }
 }
 
-//更新教师
+//更新教师其他技能
 void update_d50008(mongocxx::collection& d50008,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1876,7 +1876,7 @@ void update_d50008(mongocxx::collection& d50008,const bsoncxx::document::view& d
    }
 }
 
-//删除教师
+//删除教师其他技能
 void delete_d50008( mongocxx::collection& d50008, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -2297,42 +2297,42 @@ void hblf_mongo_db_plugin_impl::init() {
             auto  d50002_traces =  mongo_conn[db_name][ d50002_traces_col];
             d50002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
-            //d50001 indexes
+            //d50003 indexes
             auto  d50003 = mongo_conn[db_name][ d50003_col];
             d50003.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
 
             auto  d50003_traces =  mongo_conn[db_name][ d50003_traces_col];
             d50003_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
-            //d50001 indexes
+            //d50004 indexes
             auto  d50004 = mongo_conn[db_name][ d50004_col];
             d50004.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
 
             auto  d50004_traces =  mongo_conn[db_name][ d50004_traces_col];
             d50004_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
-            //d50001 indexes
+            //d50005 indexes
             auto  d50005 = mongo_conn[db_name][ d50005_col];
             d50005.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
 
             auto  d50005_traces =  mongo_conn[db_name][ d50005_traces_col];
             d50005_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
-            //d50001 indexes
+            //d50006 indexes
             auto  d50006 = mongo_conn[db_name][ d50006_col];
             d50001.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
 
             auto  d50006_traces =  mongo_conn[db_name][ d50006_traces_col];
             d50006_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
-            //d50001 indexes
+            //d50007 indexes
             auto  d50007 = mongo_conn[db_name][ d50007_col];
             d50007.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
 
             auto  d50007_traces =  mongo_conn[db_name][ d50007_traces_col];
             d50007_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
-            //d50001 indexes
+            //d50008 indexes
             auto  d50008 = mongo_conn[db_name][ d50008_col];
             d50008.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
 
