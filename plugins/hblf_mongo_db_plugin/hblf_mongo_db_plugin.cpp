@@ -162,6 +162,8 @@ public:
    mongocxx::collection _d50007_traces;
    mongocxx::collection _d50008;
    mongocxx::collection _d50008_traces;
+   mongocxx::collection _d00001;
+   mongocxx::collection _d00001_traces;
 
    mongocxx::collection _accounts;
 
@@ -241,6 +243,10 @@ public:
    static const action_name addd50008;        //其他技能的action 
    static const action_name modd50008;
    static const action_name deld50008;
+   static const action_name addd00001;       //机构信息action
+   static const action_name modd00001;
+   static const action_name deld00001;
+
    
 
 
@@ -270,6 +276,8 @@ public:
    static const std::string d50007_traces_col;
    static const std::string d50008_col;               //其他技能 
    static const std::string d50008_traces_col;
+   static const std::string d00001_col;               //其他技能 
+   static const std::string d00001_traces_col;
 
    static const std::string accounts_col;
 };
@@ -313,7 +321,9 @@ const action_name hblf_mongo_db_plugin_impl::deld50007 = N(delfifooosev);
 const action_name hblf_mongo_db_plugin_impl::addd50008 = N(addfifoooeig);
 const action_name hblf_mongo_db_plugin_impl::modd50008 = N(modfifoooeig);
 const action_name hblf_mongo_db_plugin_impl::deld50008 = N(delfifoooeig);
-
+const action_name hblf_mongo_db_plugin_impl::addd00001 = N(addzerooofir);
+const action_name hblf_mongo_db_plugin_impl::modd00001 = N(modzerooofir);
+const action_name hblf_mongo_db_plugin_impl::deld00001 = N(delzerooofir);
 
 
 
@@ -345,6 +355,8 @@ const std::string hblf_mongo_db_plugin_impl::d50007_col = "d50007";             
 const std::string hblf_mongo_db_plugin_impl::d50007_traces_col = "d50007_traces";
 const std::string hblf_mongo_db_plugin_impl::d50008_col = "d50008";                                      //定义教师其他技能表名
 const std::string hblf_mongo_db_plugin_impl::d50008_traces_col = "d50008_traces";
+const std::string hblf_mongo_db_plugin_impl::d00001_col = "d00001";                                      //定义机构信息表名
+const std::string hblf_mongo_db_plugin_impl::d00001_traces_col = "d00001_traces";
 
 const std::string hblf_mongo_db_plugin_impl::accounts_col = "accounts";
 
@@ -523,6 +535,8 @@ void hblf_mongo_db_plugin_impl::consume_blocks() {
       _d50007_traces = mongo_conn[db_name][d50007_traces_col];
       _d50008 = mongo_conn[db_name][d50008_col];
       _d50008_traces = mongo_conn[db_name][d50008_traces_col];
+      _d00001 = mongo_conn[db_name][d00001_col];
+      _d00001_traces = mongo_conn[db_name][d00001_traces_col];
       _accounts = mongo_conn[db_name][accounts_col];
 
 
@@ -848,6 +862,7 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    mongocxx::bulk_write bulk_action_d50006_traces = _d50006_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_d50007_traces = _d50007_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_d50008_traces = _d50008_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d00001_traces = _d00001_traces.create_bulk_write(bulk_opts);
    
    
    bool write_student_atraces = false;
@@ -863,6 +878,7 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    bool write_d50006_atraces = false;
    bool write_d50007_atraces = false;
    bool write_d50008_atraces = false;
+   bool write_d00001_atraces = false;
    bool write_ttrace = false; // filters apply to transaction_traces as well
    bool executed = t->receipt.valid() && t->receipt->status == chain::transaction_receipt_header::executed;
 
@@ -894,6 +910,8 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
             write_d50007_atraces |= add_action_trace(bulk_action_d50007_traces,atrace,t,executed,now,write_ttrace);
          }else if(atrace.act.name == addd50008 || atrace.act.name == modd50008 || atrace.act.name == deld50008){
             write_d50008_atraces |= add_action_trace(bulk_action_d50008_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd00001 || atrace.act.name == modd00001 || atrace.act.name == deld00001){
+               write_d00001_atraces |= add_action_trace(bulk_action_d00001_traces,atrace,t,executed,now,write_ttrace);
          }
       } catch(...) {
          handle_mongo_exception("add action traces", __LINE__);
@@ -1034,6 +1052,16 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    if( write_d50008_atraces ) {
       try {
          if( !bulk_action_d50008_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+   if( write_d00001_atraces ) {
+      try {
+         if( !bulk_action_d00001_traces.execute() ) {
             EOS_ASSERT( false, chain::mongo_db_insert_fail,
                         "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
          }
@@ -1893,6 +1921,70 @@ void delete_d50008( mongocxx::collection& d50008, const bsoncxx::document::view&
    }
 }
 
+//创建机构信息表
+void create_d00001( mongocxx::collection& d00001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element orgId_ele = data["orgId"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "orgId", orgId_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "create_d00001 orgId" <<orgId_ele.get_utf8().value << std::endl;
+      if( !d00001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d00001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d00001", __LINE__ );
+   }
+}
+
+//更新机构信息
+void update_d00001(mongocxx::collection& d00001,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element orgId_ele = data["orgId"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "orgId", orgId_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "update_d00001 orgId" << orgId_ele.get_utf8().value << std::endl;
+      if( !d00001.update_one( make_document( kvp("orgId", orgId_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d00001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d00001", __LINE__ );
+   }
+}
+
+//删除机构信息表
+void delete_d00001( mongocxx::collection& d00001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element orgId_ele = data["orgId"]; 
+   try {
+      std::cout << "delete_d00001 orgId " << orgId_ele.get_utf8().value << std::endl;
+      if( !d00001.delete_one( make_document( kvp("orgId", orgId_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d00001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d00001", __LINE__ );
+   }
+}
 
 }
 
@@ -2080,6 +2172,18 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
          std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
                std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50008(_d50008,datadoc,now);        
+      }else if(act.name == addd00001){
+            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               create_d00001(_d00001,datadoc,now);
+      }else if(act.name == modd00001){
+            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               update_d00001(_d00001,datadoc,now);
+      }else if(act.name == deld00001){
+            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               delete_d00001(_d00001,datadoc,now);
       }
       
    } catch( fc::exception& e ) {
@@ -2140,6 +2244,8 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     auto d50007_traces = mongo_conn[db_name][d50007_traces_col];
     auto d50008 = mongo_conn[db_name][d50008_col];
     auto d50008_traces = mongo_conn[db_name][d50008_traces_col];
+    auto d00001 = mongo_conn[db_name][d00001_col];
+    auto d00001_traces = mongo_conn[db_name][d00001_traces_col];
 
     
    
@@ -2171,6 +2277,8 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     d50007_traces.drop();   
     d50008.drop();
     d50008_traces.drop();      
+    d00001.drop();
+    d00001_traces.drop();      
     
 
    ilog("done wipe_database");
@@ -2339,6 +2447,13 @@ void hblf_mongo_db_plugin_impl::init() {
             auto  d50008_traces =  mongo_conn[db_name][ d50008_traces_col];
             d50008_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
+            //d50008 indexes
+            auto  d00001 = mongo_conn[db_name][ d00001_col];
+            d00001.create_index(bsoncxx::from_json( R"xxx({ "orgId" : 1, "_id" : 1 })xxx" ));
+
+            auto  d00001_traces =  mongo_conn[db_name][ d00001_traces_col];
+            d00001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
          } catch (...) {
             handle_mongo_exception( "create indexes", __LINE__ );
          }
@@ -2400,6 +2515,10 @@ void hblf_mongo_db_plugin_impl::init() {
             create_expiration_index( d50008, expire_after_seconds );
             mongocxx::collection d50008_traces = mongo_conn[db_name][d50008_traces_col];
             create_expiration_index( d50008_traces, expire_after_seconds );
+            mongocxx::collection d00001 = mongo_conn[db_name][d00001_col];
+            create_expiration_index( d00001, expire_after_seconds );
+            mongocxx::collection d00001_traces = mongo_conn[db_name][d00001_traces_col];
+            create_expiration_index( d00001_traces, expire_after_seconds );
             
 
          } catch(...) {
