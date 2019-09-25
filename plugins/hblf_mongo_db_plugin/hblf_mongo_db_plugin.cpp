@@ -170,6 +170,8 @@ public:
    mongocxx::collection _d00005_traces;
    mongocxx::collection _d00006;
    mongocxx::collection _d00006_traces;
+   mongocxx::collection _d40003;
+   mongocxx::collection _d40003_traces;
 
 
    mongocxx::collection _accounts;
@@ -262,6 +264,9 @@ public:
    static const action_name addd00006;       //教师信息action
    static const action_name modd00006;
    static const action_name deld00006;
+   static const action_name addd40003;       //考试成绩信息action
+   static const action_name modd40003;
+   static const action_name deld40003;
 
    
 
@@ -300,6 +305,8 @@ public:
    static const std::string d00005_traces_col;
    static const std::string d00006_col;               //教师信息 
    static const std::string d00006_traces_col;
+   static const std::string d40003_col;               //考试成绩信息 
+   static const std::string d40003_traces_col;
 
    static const std::string accounts_col;
 };
@@ -355,6 +362,9 @@ const action_name hblf_mongo_db_plugin_impl::deld00005 = N(delzerooofif);
 const action_name hblf_mongo_db_plugin_impl::addd00006 = N(addzerooosix);
 const action_name hblf_mongo_db_plugin_impl::modd00006 = N(modzerooosix);
 const action_name hblf_mongo_db_plugin_impl::deld00006 = N(delzerooosix);
+const action_name hblf_mongo_db_plugin_impl::addd40003 = N(addfouooothi);
+const action_name hblf_mongo_db_plugin_impl::modd40003 = N(modfouooothi);
+const action_name hblf_mongo_db_plugin_impl::deld40003 = N(delfouooothi);
 
 
 
@@ -395,6 +405,8 @@ const std::string hblf_mongo_db_plugin_impl::d00005_col = "d00005";             
 const std::string hblf_mongo_db_plugin_impl::d00005_traces_col = "d00005_traces";
 const std::string hblf_mongo_db_plugin_impl::d00006_col = "d00006";                                      //定义教师信息表名
 const std::string hblf_mongo_db_plugin_impl::d00006_traces_col = "d00006_traces";
+const std::string hblf_mongo_db_plugin_impl::d40003_col = "d40003";                                      //定义考试成绩信息表名
+const std::string hblf_mongo_db_plugin_impl::d40003_traces_col = "d40003_traces";
 
 const std::string hblf_mongo_db_plugin_impl::accounts_col = "accounts";
 
@@ -581,6 +593,8 @@ void hblf_mongo_db_plugin_impl::consume_blocks() {
       _d00005_traces = mongo_conn[db_name][d00005_traces_col];
       _d00006= mongo_conn[db_name][d00006_col];
       _d00006_traces = mongo_conn[db_name][d00006_traces_col];
+       _d40003= mongo_conn[db_name][d40003_col];
+      _d40003_traces = mongo_conn[db_name][d40003_traces_col];
       _accounts = mongo_conn[db_name][accounts_col];
 
 
@@ -910,6 +924,7 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    mongocxx::bulk_write bulk_action_d00007_traces = _d00007_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_d00005_traces = _d00005_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_d00006_traces = _d00006_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d40003_traces = _d40003_traces.create_bulk_write(bulk_opts);
    
    
    bool write_student_atraces = false;
@@ -929,6 +944,7 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    bool write_d00007_atraces = false;
    bool write_d00005_atraces = false;
    bool write_d00006_atraces = false;
+   bool write_d40003_atraces = false;
    bool write_ttrace = false; // filters apply to transaction_traces as well
    bool executed = t->receipt.valid() && t->receipt->status == chain::transaction_receipt_header::executed;
 
@@ -968,6 +984,8 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
                 write_d00005_atraces |= add_action_trace(bulk_action_d00005_traces,atrace,t,executed,now,write_ttrace);
          }else if(atrace.act.name == addd00006 || atrace.act.name == modd00006 || atrace.act.name == deld00006){
                 write_d00006_atraces |= add_action_trace(bulk_action_d00006_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd40003 || atrace.act.name == modd40003 || atrace.act.name == deld40003){
+               write_d40003_atraces |= add_action_trace(bulk_action_d40003_traces,atrace,t,executed,now,write_ttrace);
          }
       } catch(...) {
          handle_mongo_exception("add action traces", __LINE__);
@@ -1151,6 +1169,17 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    if( write_d00006_atraces ) {
       try {
          if( !bulk_action_d00006_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+    if( write_d40003_atraces ) {
+      try {
+         if( !bulk_action_d40003_traces.execute() ) {
             EOS_ASSERT( false, chain::mongo_db_insert_fail,
                         "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
          }
@@ -2274,6 +2303,72 @@ void delete_d00006( mongocxx::collection& d00006, const bsoncxx::document::view&
 }
 
 
+//创建考试成绩信息表
+void create_d40003( mongocxx::collection& d40003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element xscjid_ele = data["xscjid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "xscjid", xscjid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "create_d40003 xscjid" <<xscjid_ele.get_utf8().value << std::endl;
+      if( !d40003.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40003");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d40003", __LINE__ );
+   }
+}
+
+//更新考试成绩信息
+void update_d40003(mongocxx::collection& d40003,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element xscjid_ele = data["xscjid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "xscjid", xscjid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ))));
+   try {
+      std::cout << "update_d4000 xscjid" << xscjid_ele.get_utf8().value << std::endl;
+      if( !d40003.update_one( make_document( kvp("xscjid", xscjid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40003");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d40003", __LINE__ );
+   }
+}
+
+//删除考试成绩信息表
+void delete_d40003( mongocxx::collection& d40003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element xscjid_ele = data["xscjid"]; 
+   try {
+      std::cout << "delete_d40003 xscjid " <<xscjid_ele.get_utf8().value << std::endl;
+      if( !d40003.delete_one( make_document( kvp("xscjid", xscjid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d40003");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d40003", __LINE__ );
+   }
+}
+
+
 
 }
 
@@ -2509,6 +2604,18 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
             std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
                std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d00006(_d00006,datadoc,now);
+      }else if(act.name == addd40003){
+             std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               create_d40003(_d40003,datadoc,now);
+      }else if(act.name == modd40003){
+            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+              update_d40003(_d40003,datadoc,now);
+      }else if(act.name == deld40003){
+             std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               delete_d40003(_d40003,datadoc,now);
       }
       
    } catch( fc::exception& e ) {
@@ -2577,7 +2684,8 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     auto d00005_traces = mongo_conn[db_name][d00005_traces_col];
     auto d00006 = mongo_conn[db_name][d00006_col];
     auto d00006_traces = mongo_conn[db_name][d00006_traces_col];
-    
+    auto d40003 = mongo_conn[db_name][d40003_col];
+    auto d40003_traces = mongo_conn[db_name][d40003_traces_col];
    
    
    students.drop();
@@ -2614,7 +2722,9 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     d00005.drop();
     d00005_traces.drop();       
     d00006.drop();
-    d00006_traces.drop();            
+    d00006_traces.drop(); 
+    d40003.drop();
+    d40003_traces.drop();           
     
 
    ilog("done wipe_database");
@@ -2811,6 +2921,13 @@ void hblf_mongo_db_plugin_impl::init() {
             auto  d00006_traces =  mongo_conn[db_name][ d00006_traces_col];
             d00006_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
+            //d40003 indexes
+            auto  d40003 = mongo_conn[db_name][ d40003_col];
+            d40003.create_index(bsoncxx::from_json( R"xxx({ "xscjid : 1, "_id" : 1 })xxx" ));
+
+            auto  d40003_traces =  mongo_conn[db_name][ d40003_traces_col];
+            d40003_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
          } catch (...) {
             handle_mongo_exception( "create indexes", __LINE__ );
          }
@@ -2888,6 +3005,10 @@ void hblf_mongo_db_plugin_impl::init() {
             create_expiration_index( d00006, expire_after_seconds );
             mongocxx::collection d00006_traces = mongo_conn[db_name][d00006_traces_col];
             create_expiration_index( d00006_traces, expire_after_seconds );
+            mongocxx::collection d40003 = mongo_conn[db_name][d40003_col];
+            create_expiration_index( d40003, expire_after_seconds );
+            mongocxx::collection d40003_traces = mongo_conn[db_name][d40003_traces_col];
+            create_expiration_index( d40003_traces, expire_after_seconds );
             
 
          } catch(...) {
