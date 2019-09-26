@@ -38,19 +38,20 @@ git clone https://github.com/vankiaio/vkt.git --recursive
 git submodule update --init --recursive  
 
 ### 自动化编译脚本
-自动化编译脚本首先会检查和安装需要的依赖库,然后进行编译 vkt. 脚本支持如下所示的操作系统,我们会在将来的版本中支持其他的Linux/Unix版本.
+自动化编译脚本首先会检查和安装需要的依赖库,然后进行编译 vkt.   
+脚本支持如下所示的操作系统,我们会在将来的版本中支持其他的Linux/Unix版本.
 
 ### OS
-Amazon 2017.09 及 更高版本.
-Centos 7.
-Fedora 25 及 更高版本(推荐Fedora 27).
-Mint 18.
-Ubuntu 18.04 (推荐Ubuntu 18.04).
-MacOS Darwin 10.12 及 更高版本 (推荐MacOS 10.13.x).
+Amazon 2017.09 及 更高版本.  
+Centos 7.  
+Fedora 25 及 更高版本(推荐Fedora 27).  
+Mint 18.  
+Ubuntu 18.04 (推荐Ubuntu 18.04).  
+MacOS Darwin 10.12 及 更高版本 (推荐MacOS 10.13.x).  
 
 ### 系统需求（针对所有系统）
-至少需要 8GB 内存
-至少需要 20GB 磁盘空间
+至少需要 8GB 内存  
+至少需要 20GB 磁盘空间  
 
 ### 运行编译脚本
 在 vkt 文件夹中运行脚本,命令如下：
