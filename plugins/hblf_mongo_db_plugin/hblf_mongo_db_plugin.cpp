@@ -93,6 +93,8 @@ public:
                           bool executed, const std::chrono::milliseconds& now,
                           bool& write_ttrace );
 
+   void update_account(const chain::action& act);
+
    void update_base_col(const chain::action& act, const bsoncxx::document::view& actdoc);
 
    void add_pub_keys( const vector<chain::key_weight>& keys, const account_name& name,
@@ -213,6 +215,8 @@ public:
 
    abi_cache_index_t abi_cache_index;
 
+   static const action_name setabi;
+
    static const action_name addstudent;
    static const action_name modstudent;
    static const action_name delstudent;
@@ -310,6 +314,8 @@ public:
 
    static const std::string accounts_col;
 };
+
+const action_name hblf_mongo_db_plugin_impl::setabi = chain::setabi::get_name();
 
 const action_name hblf_mongo_db_plugin_impl::addstudent = N(addstudent);
 const action_name hblf_mongo_db_plugin_impl::modstudent = N(modstudent);
@@ -843,6 +849,10 @@ hblf_mongo_db_plugin_impl::add_action_trace( mongocxx::bulk_write& bulk_action_t
 {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
+
+   if( executed && atrace.receiver == chain::config::system_account_name ) {
+      update_account( atrace.act );
+   }
 
    if(!executed || atrace.receiver != N(vankia.hblf)) {
       return false;
@@ -2618,6 +2628,28 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
                delete_d40003(_d40003,datadoc,now);
       }
       
+   } catch( fc::exception& e ) {
+      // if unable to unpack native type, skip account creation
+   }
+}
+
+void hblf_mongo_db_plugin_impl::update_account(const chain::action& act)
+{
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+   using namespace bsoncxx::types;
+
+   if (act.account != chain::config::system_account_name)
+      return;
+
+   try {
+     
+        if( act.name == setabi ) {
+         auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+         auto setabi = act.data_as<chain::setabi>();
+          abi_cache_index.erase( setabi.account );
+      }
    } catch( fc::exception& e ) {
       // if unable to unpack native type, skip account creation
    }
