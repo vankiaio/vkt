@@ -95,7 +95,7 @@ public:
 
    void update_account(const chain::action& act);
 
-   void update_base_col(const chain::action& act, const bsoncxx::document::view& actdoc);
+   void update_base_col(const chain::action& act, const bsoncxx::document::view& actdoc,const chain::transaction_trace_ptr& t);
 
    void add_pub_keys( const vector<chain::key_weight>& keys, const account_name& name,
                       const permission_name& permission, const std::chrono::milliseconds& now );
@@ -828,7 +828,8 @@ fc::variant hblf_mongo_db_plugin_impl::to_variant_with_abi( const T& obj ) {
    return pretty_output;
 }
 
-void hblf_mongo_db_plugin_impl::process_applied_transaction( const chain::transaction_trace_ptr& t ) {
+void hblf_mongo_db_plugin_impl::process_applied_transaction( 
+   const chain::transaction_trace_ptr& t ) {
    try {
       // always call since we need to capture setabi on accounts even if not storing transaction traces
       _process_applied_transaction( t );
@@ -876,7 +877,7 @@ hblf_mongo_db_plugin_impl::add_action_trace( mongocxx::bulk_write& bulk_action_t
             bsoncxx::document::element act_ele = value.view()["act"];
             if (act_ele) {
                bsoncxx::document::view actdoc{act_ele.get_document()};
-               update_base_col( atrace.act, actdoc);
+               update_base_col( atrace.act, actdoc,t);
             }
          }
       } catch( bsoncxx::exception& ) {
@@ -1203,7 +1204,7 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
 
 namespace {
 
-void create_student( mongocxx::collection& students, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_student( mongocxx::collection& students, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1215,7 +1216,9 @@ void create_student( mongocxx::collection& students, const bsoncxx::document::vi
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "userId", userId_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                        kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_student userId " << userId_ele.get_utf8().value << std::endl;
       if( !students.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1227,7 +1230,7 @@ void create_student( mongocxx::collection& students, const bsoncxx::document::vi
    }
 }
 
-void update_student( mongocxx::collection& students, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void update_student( mongocxx::collection& students, const bsoncxx::document::view& data, std::chrono::milliseconds& now, std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1239,7 +1242,10 @@ void update_student( mongocxx::collection& students, const bsoncxx::document::vi
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "userId", userId_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+                                    
    try {
       std::cout << "update_student userId " << userId_ele.get_utf8().value << std::endl;
       if( !students.update_one( make_document( kvp("userId", userId_ele.get_value())), update.view(), update_opts )) {
@@ -1268,19 +1274,22 @@ void delete_student( mongocxx::collection& students, const bsoncxx::document::vi
    }
 }
 
-void create_teacher( mongocxx::collection& teachers, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_teacher( mongocxx::collection& teachers, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
 
    mongocxx::options::update update_opts{};
    update_opts.upsert( true );
+   
 
    bsoncxx::document::element userId_ele = data["userId"]; 
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "userId", userId_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_teacher userId " << userId_ele.get_utf8().value << std::endl;
       if( !teachers.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1292,7 +1301,7 @@ void create_teacher( mongocxx::collection& teachers, const bsoncxx::document::vi
    }
 }
 
-void update_teacher( mongocxx::collection& teachers, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void update_teacher( mongocxx::collection& teachers, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1304,7 +1313,9 @@ void update_teacher( mongocxx::collection& teachers, const bsoncxx::document::vi
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "userId", userId_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_teacher userId " << userId_ele.get_utf8().value << std::endl;
       if( !teachers.update_one( make_document( kvp("userId", userId_ele.get_value())), update.view(), update_opts )) {
@@ -1334,7 +1345,7 @@ void delete_teacher( mongocxx::collection& teachers, const bsoncxx::document::vi
 }
 
 //创建体质健康信息
-void create_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& data,std::chrono::milliseconds& now)
+void create_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time)
 {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
@@ -1346,7 +1357,9 @@ void create_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& d
    auto update = make_document(
       kvp( "$set", make_document(   kvp( "tzjkid", tzjkid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d20001 tzjkid " << tzjkid_ele.get_utf8().value << std::endl;
       if( !d20001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1359,7 +1372,7 @@ void create_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& d
 }
 
 //更新体质健康信息
-void update_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1371,7 +1384,9 @@ void update_d20001(mongocxx::collection& d20001,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "tzjkid", tzjkid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
                                    // printf("update这里成功执行了%d",1);
    try {
       std::cout << "update_d20001 tzjkid" << tzjkid_ele.get_utf8().value << std::endl;
@@ -1401,7 +1416,7 @@ void delete_d20001( mongocxx::collection& d20001, const bsoncxx::document::view&
 }
 
 //创建体质健康明细表
-void create_d20002( mongocxx::collection& d20002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d20002( mongocxx::collection& d20002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1413,7 +1428,9 @@ void create_d20002( mongocxx::collection& d20002, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "xjh", xjh_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d20002 xjh" << xjh_ele.get_utf8().value << std::endl;
       if( !d20002.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1426,7 +1443,7 @@ void create_d20002( mongocxx::collection& d20002, const bsoncxx::document::view&
 }
 
 //更新体质健康明细表
-void update_d20002(mongocxx::collection& d20002,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d20002(mongocxx::collection& d20002,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1438,7 +1455,9 @@ void update_d20002(mongocxx::collection& d20002,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "xjh", xjh_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d20002 xjh" << xjh_ele.get_utf8().value << std::endl;
       if( !d20002.update_one( make_document( kvp("xjh", xjh_ele.get_value())), update.view(), update_opts )) {
@@ -1467,7 +1486,7 @@ void delete_d20002( mongocxx::collection& d20002, const bsoncxx::document::view&
 }
 
 //创建教师荣誉信息
-void create_d80001( mongocxx::collection& d80001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d80001( mongocxx::collection& d80001, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1479,7 +1498,9 @@ void create_d80001( mongocxx::collection& d80001, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d80001 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d80001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1490,7 +1511,7 @@ void create_d80001( mongocxx::collection& d80001, const bsoncxx::document::view&
    }
 }
 //更新教师荣誉信息
-void update_d80001(mongocxx::collection& d80001,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d80001(mongocxx::collection& d80001,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1502,7 +1523,9 @@ void update_d80001(mongocxx::collection& d80001,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d80001 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d80001.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1530,7 +1553,7 @@ void delete_d80001( mongocxx::collection& d80001, const bsoncxx::document::view&
 }
 
 //创建教师职称评定
-void create_d50001( mongocxx::collection& d50001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50001( mongocxx::collection& d50001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1542,7 +1565,9 @@ void create_d50001( mongocxx::collection& d50001, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50001 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1554,7 +1579,7 @@ void create_d50001( mongocxx::collection& d50001, const bsoncxx::document::view&
 }
 
 //更新教师教师职称评定
-void update_d50001(mongocxx::collection& d50001,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50001(mongocxx::collection& d50001,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1566,7 +1591,9 @@ void update_d50001(mongocxx::collection& d50001,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d50001 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50001.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1595,7 +1622,7 @@ void delete_d50001( mongocxx::collection& d50001, const bsoncxx::document::view&
 }
 
 //创建教师教育经历
-void create_d50002( mongocxx::collection& d50002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50002( mongocxx::collection& d50002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1607,7 +1634,9 @@ void create_d50002( mongocxx::collection& d50002, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50001 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50002.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1619,7 +1648,7 @@ void create_d50002( mongocxx::collection& d50002, const bsoncxx::document::view&
 }
 
 //更新教师教育经历
-void update_d50002(mongocxx::collection& d50002,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50002(mongocxx::collection& d50002,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1631,7 +1660,9 @@ void update_d50002(mongocxx::collection& d50002,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d50002 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50002.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1659,7 +1690,7 @@ void delete_d50002( mongocxx::collection& d50002, const bsoncxx::document::view&
 }
 
 //创建教师联系方式信息
-void create_d50003( mongocxx::collection& d50003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50003( mongocxx::collection& d50003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1671,7 +1702,9 @@ void create_d50003( mongocxx::collection& d50003, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50003 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50003.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1683,7 +1716,7 @@ void create_d50003( mongocxx::collection& d50003, const bsoncxx::document::view&
 }
 
 //更新教师联系方式信息
-void update_d50003(mongocxx::collection& d50003,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50003(mongocxx::collection& d50003,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1695,7 +1728,9 @@ void update_d50003(mongocxx::collection& d50003,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d50003 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50003.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1724,7 +1759,7 @@ void delete_d50003( mongocxx::collection& d50003, const bsoncxx::document::view&
 }
 
 //创建教师政治面貌
-void create_d50004( mongocxx::collection& d50004, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50004( mongocxx::collection& d50004, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1736,7 +1771,9 @@ void create_d50004( mongocxx::collection& d50004, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50004 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50004.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1749,7 +1786,7 @@ void create_d50004( mongocxx::collection& d50004, const bsoncxx::document::view&
 
 
 //更新教师政治面貌
-void update_d50004(mongocxx::collection& d50004,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50004(mongocxx::collection& d50004,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1761,7 +1798,9 @@ void update_d50004(mongocxx::collection& d50004,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d50004 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50004.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1790,7 +1829,7 @@ void delete_d50004( mongocxx::collection& d50004, const bsoncxx::document::view&
 }
 
 //创建教师聘任信息
-void create_d50005( mongocxx::collection& d50005, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50005( mongocxx::collection& d50005, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1802,7 +1841,9 @@ void create_d50005( mongocxx::collection& d50005, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50005 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50005.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1814,7 +1855,7 @@ void create_d50005( mongocxx::collection& d50005, const bsoncxx::document::view&
 }
 
 //更新教师聘任信息
-void update_d50005(mongocxx::collection& d50005,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50005(mongocxx::collection& d50005,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1826,7 +1867,8 @@ void update_d50005(mongocxx::collection& d50005,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time}))));
    try {
       std::cout << "update_d50005 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50005.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1855,7 +1897,7 @@ void delete_d50005( mongocxx::collection& d50005, const bsoncxx::document::view&
    }
 }
 //创建教师语言能力
-void create_d50006( mongocxx::collection& d50006, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50006( mongocxx::collection& d50006, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1867,7 +1909,9 @@ void create_d50006( mongocxx::collection& d50006, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50006 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50006.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1879,7 +1923,7 @@ void create_d50006( mongocxx::collection& d50006, const bsoncxx::document::view&
 }
 
 //更新教师语言能力
-void update_d50006(mongocxx::collection& d50006,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50006(mongocxx::collection& d50006,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1891,7 +1935,9 @@ void update_d50006(mongocxx::collection& d50006,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d50006 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50006.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1920,7 +1966,7 @@ void delete_d50006( mongocxx::collection& d50006, const bsoncxx::document::view&
    }
 }
 //创建教师资格
-void create_d50007( mongocxx::collection& d50007, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50007( mongocxx::collection& d50007, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1932,7 +1978,9 @@ void create_d50007( mongocxx::collection& d50007, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50007 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50007.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -1944,7 +1992,7 @@ void create_d50007( mongocxx::collection& d50007, const bsoncxx::document::view&
 }
 
 //更新教师资格
-void update_d50007(mongocxx::collection& d50007,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50007(mongocxx::collection& d50007,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1956,7 +2004,9 @@ void update_d50007(mongocxx::collection& d50007,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d50007 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50007.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -1985,7 +2035,7 @@ void delete_d50007( mongocxx::collection& d50007, const bsoncxx::document::view&
 }
 
 //创建教师其他技能
-void create_d50008( mongocxx::collection& d50008, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d50008( mongocxx::collection& d50008, const bsoncxx::document::view& data, std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -1997,7 +2047,9 @@ void create_d50008( mongocxx::collection& d50008, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d50008 jsid" <<jsid_ele.get_utf8().value << std::endl;
       if( !d50008.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -2009,7 +2061,7 @@ void create_d50008( mongocxx::collection& d50008, const bsoncxx::document::view&
 }
 
 //更新教师其他技能
-void update_d50008(mongocxx::collection& d50008,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d50008(mongocxx::collection& d50008,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2021,7 +2073,9 @@ void update_d50008(mongocxx::collection& d50008,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d50008 jsid" << jsid_ele.get_utf8().value << std::endl;
       if( !d50008.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
@@ -2050,7 +2104,7 @@ void delete_d50008( mongocxx::collection& d50008, const bsoncxx::document::view&
 }
 
 //创建机构信息表
-void create_d00001( mongocxx::collection& d00001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d00001( mongocxx::collection& d00001, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2062,7 +2116,9 @@ void create_d00001( mongocxx::collection& d00001, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "orgId", orgId_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d00001 orgId" <<orgId_ele.get_utf8().value << std::endl;
       if( !d00001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -2074,7 +2130,7 @@ void create_d00001( mongocxx::collection& d00001, const bsoncxx::document::view&
 }
 
 //更新机构信息
-void update_d00001(mongocxx::collection& d00001,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d00001(mongocxx::collection& d00001,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2086,7 +2142,9 @@ void update_d00001(mongocxx::collection& d00001,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "orgId", orgId_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d00001 orgId" << orgId_ele.get_utf8().value << std::endl;
       if( !d00001.update_one( make_document( kvp("orgId", orgId_ele.get_value())), update.view(), update_opts )) {
@@ -2117,7 +2175,7 @@ void delete_d00001( mongocxx::collection& d00001, const bsoncxx::document::view&
 
 
 //创建学校信息表
-void create_d00007( mongocxx::collection& d00007, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d00007( mongocxx::collection& d00007, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2129,7 +2187,9 @@ void create_d00007( mongocxx::collection& d00007, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "orgId", orgId_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d00007 orgId" <<orgId_ele.get_utf8().value << std::endl;
       if( !d00007.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -2141,7 +2201,7 @@ void create_d00007( mongocxx::collection& d00007, const bsoncxx::document::view&
 }
 
 //更新学校信息
-void update_d00007(mongocxx::collection& d00007,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d00007(mongocxx::collection& d00007,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2153,7 +2213,9 @@ void update_d00007(mongocxx::collection& d00007,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "orgId", orgId_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d00007 orgId" << orgId_ele.get_utf8().value << std::endl;
       if( !d00007.update_one( make_document( kvp("orgId", orgId_ele.get_value())), update.view(), update_opts )) {
@@ -2165,7 +2227,7 @@ void update_d00007(mongocxx::collection& d00007,const bsoncxx::document::view& d
 }
 
 //删除学校信息表
-void delete_d00007( mongocxx::collection& d00007, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void delete_d00007( mongocxx::collection& d00007, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2183,7 +2245,7 @@ void delete_d00007( mongocxx::collection& d00007, const bsoncxx::document::view&
 
 
 //创建学生信息表
-void create_d00005( mongocxx::collection& d00005, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d00005( mongocxx::collection& d00005, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2195,7 +2257,9 @@ void create_d00005( mongocxx::collection& d00005, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "userId", userId_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d00005 userId" <<userId_ele.get_utf8().value << std::endl;
       if( !d00005.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -2207,7 +2271,7 @@ void create_d00005( mongocxx::collection& d00005, const bsoncxx::document::view&
 }
 
 //更新学生信息
-void update_d00005(mongocxx::collection& d00005,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d00005(mongocxx::collection& d00005,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2219,7 +2283,9 @@ void update_d00005(mongocxx::collection& d00005,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "userId", userId_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d00005 userId" << userId_ele.get_utf8().value << std::endl;
       if( !d00005.update_one( make_document( kvp("userId", userId_ele.get_value())), update.view(), update_opts )) {
@@ -2248,7 +2314,7 @@ void delete_d00005( mongocxx::collection& d00005, const bsoncxx::document::view&
 }
 
 //创建教师信息表
-void create_d00006( mongocxx::collection& d00006, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d00006( mongocxx::collection& d00006, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2260,7 +2326,9 @@ void create_d00006( mongocxx::collection& d00006, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "userId", userId_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d00006userId" <<userId_ele.get_utf8().value << std::endl;
       if( !d00006.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -2272,7 +2340,7 @@ void create_d00006( mongocxx::collection& d00006, const bsoncxx::document::view&
 }
 
 //更新教师信息
-void update_d00006(mongocxx::collection& d00006,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d00006(mongocxx::collection& d00006,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2284,7 +2352,9 @@ void update_d00006(mongocxx::collection& d00006,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "userId", userId_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d00006 userId" << userId_ele.get_utf8().value << std::endl;
       if( !d00006.update_one( make_document( kvp("userId", userId_ele.get_value())), update.view(), update_opts )) {
@@ -2314,7 +2384,7 @@ void delete_d00006( mongocxx::collection& d00006, const bsoncxx::document::view&
 
 
 //创建考试成绩信息表
-void create_d40003( mongocxx::collection& d40003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+void create_d40003( mongocxx::collection& d40003, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2326,7 +2396,9 @@ void create_d40003( mongocxx::collection& d40003, const bsoncxx::document::view&
    auto update = make_document(
          kvp( "$set", make_document(   kvp( "xscjid", xscjid_ele.get_value()),
                                        kvp( "data", data),
-                                       kvp( "createdAt", b_date{now} ))));
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
    try {
       std::cout << "create_d40003 xscjid" <<xscjid_ele.get_utf8().value << std::endl;
       if( !d40003.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
@@ -2338,7 +2410,7 @@ void create_d40003( mongocxx::collection& d40003, const bsoncxx::document::view&
 }
 
 //更新考试成绩信息
-void update_d40003(mongocxx::collection& d40003,const bsoncxx::document::view& data,std::chrono::milliseconds& now) {
+void update_d40003(mongocxx::collection& d40003,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
    using namespace bsoncxx::types;
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2350,7 +2422,9 @@ void update_d40003(mongocxx::collection& d40003,const bsoncxx::document::view& d
    auto update = make_document( 
        kvp( "$set", make_document(  kvp( "xscjid", xscjid_ele.get_value()),
                                     kvp( "data", data),
-                                    kvp( "createdAt", b_date{now} ))));
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
    try {
       std::cout << "update_d4000 xscjid" << xscjid_ele.get_utf8().value << std::endl;
       if( !d40003.update_one( make_document( kvp("xscjid", xscjid_ele.get_value())), update.view(), update_opts )) {
@@ -2382,7 +2456,7 @@ void delete_d40003( mongocxx::collection& d40003, const bsoncxx::document::view&
 
 }
 
-void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const bsoncxx::document::view& actdoc)
+void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const bsoncxx::document::view& actdoc,const chain::transaction_trace_ptr& t)
 {
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
@@ -2400,231 +2474,123 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
          std::cout << "Error: data field missing." << std::endl;
          return;
       }
+      
+
+      auto block_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+         std::chrono::microseconds{t->block_time.to_time_point().time_since_epoch().count()});
+
+      std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
 
       if( act.name == addstudent ) {
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+         
 
-         create_student( _students, datadoc, now );
+         create_student( _students, datadoc, now,block_time );
       }else if( act.name == modstudent ) {
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-
-         update_student( _students, datadoc, now );
+         update_student( _students, datadoc, now ,block_time);
       }else if( act.name == delstudent ) {
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-
          delete_student( _students, datadoc, now );
       }else if( act.name == addteachbase ) {
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-
-         create_teacher( _teachers, datadoc, now );
+         create_teacher( _teachers, datadoc, now ,block_time);
       }else if( act.name == modteachbase ) {
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-
-         update_teacher( _teachers, datadoc, now );
+         update_teacher( _teachers, datadoc, now,block_time );
       }else if( act.name == delteachbase) {
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-
          delete_teacher( _teachers, datadoc, now );
       }else if(act.name == addd20001){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d20001(_d20001,datadoc,now);
+               create_d20001(_d20001,datadoc,now,block_time);
       }else if(act.name == modd20001){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d20001(_d20001,datadoc,now);
+               update_d20001(_d20001,datadoc,now,block_time);
       }else if(act.name == deld20001){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d20001(_d20001,datadoc,now);
       }else if(act.name == addd20002){
-               std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d20002(_d20002,datadoc,now);
-      }else if(act.name == modd20002)
-      {
-               std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d20002(_d20002,datadoc,now);
-      }else if(act.name == deld20002)
-      {
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
+               create_d20002(_d20002,datadoc,now,block_time);
+      }else if(act.name == modd20002){
+               update_d20002(_d20002,datadoc,now,block_time);
+      }else if(act.name == deld20002){
                delete_d20002(_d20002,datadoc,now);
       }else if(act.name == addd80001){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d80001(_d80001,datadoc,now);
+               create_d80001(_d80001,datadoc,now,block_time);
       }else if(act.name == modd80001){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d80001(_d80001,datadoc,now);
+               update_d80001(_d80001,datadoc,now,block_time);
       }else if(act.name == deld80001){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d80001(_d80001,datadoc,now);        
       }else if(act.name == addd50001){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50001(_d50001,datadoc,now);
+               create_d50001(_d50001,datadoc,now,block_time);
       }else if(act.name == modd50001){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50001(_d50001,datadoc,now);
+               update_d50001(_d50001,datadoc,now,block_time);
       }else if(act.name == deld50001){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50001(_d50001,datadoc,now);        
-      }
-      else if(act.name == addd50002){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50002(_d50002,datadoc,now);
+      }else if(act.name == addd50002){
+               create_d50002(_d50002,datadoc,now,block_time);
       }else if(act.name == modd50002){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50002(_d50002,datadoc,now);
+               update_d50002(_d50002,datadoc,now,block_time);
       }else if(act.name == deld50002){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50002(_d50002,datadoc,now);        
       }else if(act.name == addd50003){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50003(_d50003,datadoc,now);
+               create_d50003(_d50003,datadoc,now,block_time);
       }else if(act.name == modd50003){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50003(_d50003,datadoc,now);
+               update_d50003(_d50003,datadoc,now,block_time);
       }else if(act.name == deld50003){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50003(_d50003,datadoc,now);        
       }else if(act.name == addd50004){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50004(_d50004,datadoc,now);
+               create_d50004(_d50004,datadoc,now,block_time);
       }else if(act.name == modd50004){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50004(_d50004,datadoc,now);
+               update_d50004(_d50004,datadoc,now,block_time);
       }else if(act.name == deld50004){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50004(_d50004,datadoc,now);        
       }else if(act.name == addd50005){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50005(_d50005,datadoc,now);
+               create_d50005(_d50005,datadoc,now,block_time);
       }else if(act.name == modd50005){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50005(_d50005,datadoc,now);
+               update_d50005(_d50005,datadoc,now,block_time);
       }else if(act.name == deld50005){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50005(_d50005,datadoc,now);        
       }else if(act.name == addd50006){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50006(_d50006,datadoc,now);
+               create_d50006(_d50006,datadoc,now,block_time);
       }else if(act.name == modd50006){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50006(_d50006,datadoc,now);
+               update_d50006(_d50006,datadoc,now,block_time);
       }else if(act.name == deld50006){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50006(_d50006,datadoc,now);        
       }else if(act.name == addd50007){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50007(_d50007,datadoc,now);
+               create_d50007(_d50007,datadoc,now,block_time);
       }else if(act.name == modd50007){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50007(_d50007,datadoc,now);
+               update_d50007(_d50007,datadoc,now,block_time);
       }else if(act.name == deld50007){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50007(_d50007,datadoc,now);        
       }else if(act.name == addd50008){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d50008(_d50008,datadoc,now);
+               create_d50008(_d50008,datadoc,now,block_time);
       }else if(act.name == modd50008){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d50008(_d50008,datadoc,now);
+               update_d50008(_d50008,datadoc,now,block_time);
       }else if(act.name == deld50008){
-         std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d50008(_d50008,datadoc,now);        
       }else if(act.name == addd00001){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d00001(_d00001,datadoc,now);
+               create_d00001(_d00001,datadoc,now,block_time);
       }else if(act.name == modd00001){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d00001(_d00001,datadoc,now);
+               update_d00001(_d00001,datadoc,now,block_time);
       }else if(act.name == deld00001){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d00001(_d00001,datadoc,now);
       }else if(act.name == addd00007){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d00007(_d00007,datadoc,now);
+               create_d00007(_d00007,datadoc,now,block_time);
       }else if(act.name == modd00007){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               update_d00007(_d00007,datadoc,now);
+               update_d00007(_d00007,datadoc,now,block_time);
       }else if(act.name == deld00007){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d00007(_d00007,datadoc,now);
       }else if(act.name == addd00005){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d00005(_d00005,datadoc,now);
+               create_d00005(_d00005,datadoc,now,block_time);
       }else if(act.name == modd00005){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-              update_d00005(_d00005,datadoc,now);
+              update_d00005(_d00005,datadoc,now,block_time);
       }else if(act.name == deld00005){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d00005(_d00005,datadoc,now);
       }else if(act.name == addd00006){
-             std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d00006(_d00006,datadoc,now);
+               create_d00006(_d00006,datadoc,now,block_time);
       }else if(act.name == modd00006){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-              update_d00006(_d00006,datadoc,now);
+              update_d00006(_d00006,datadoc,now,block_time);
       }else if(act.name == deld00006){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d00006(_d00006,datadoc,now);
       }else if(act.name == addd40003){
-             std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-               create_d40003(_d40003,datadoc,now);
+               create_d40003(_d40003,datadoc,now,block_time);
       }else if(act.name == modd40003){
-            std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-              update_d40003(_d40003,datadoc,now);
+              update_d40003(_d40003,datadoc,now,block_time);
       }else if(act.name == deld40003){
-             std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
                delete_d40003(_d40003,datadoc,now);
       }
       
