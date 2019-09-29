@@ -2392,15 +2392,15 @@ void create_d40003( mongocxx::collection& d40003, const bsoncxx::document::view&
    mongocxx::options::update update_opts{};
    update_opts.upsert( true );
 
-   bsoncxx::document::element xscjid_ele = data["xscjid"]; 
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
    auto update = make_document(
-         kvp( "$set", make_document(   kvp( "xscjid", xscjid_ele.get_value()),
+         kvp( "$set", make_document(   kvp( "ksid", ksid_ele.get_value()),
                                        kvp( "data", data),
                                        kvp( "createdAt", b_date{now} ),
                                        kvp("block_time",b_date{block_time})
                                        )));
    try {
-      std::cout << "create_d40003 xscjid" <<xscjid_ele.get_utf8().value << std::endl;
+      std::cout << "create_d40003 ksid" <<ksid_ele.get_utf8().value << std::endl;
       if( !d40003.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40003");
       }
@@ -2418,16 +2418,16 @@ void update_d40003(mongocxx::collection& d40003,const bsoncxx::document::view& d
    mongocxx::options::update update_opts{};
    update_opts.upsert( false );
     
-   bsoncxx::document::element xscjid_ele = data["xscjid"]; 
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
    auto update = make_document( 
-       kvp( "$set", make_document(  kvp( "xscjid", xscjid_ele.get_value()),
+       kvp( "$set", make_document(  kvp( "ksid", ksid_ele.get_value()),
                                     kvp( "data", data),
                                     kvp( "createdAt", b_date{now} ),
                                     kvp("block_time",b_date{block_time})
                                     )));
    try {
-      std::cout << "update_d4000 xscjid" << xscjid_ele.get_utf8().value << std::endl;
-      if( !d40003.update_one( make_document( kvp("xscjid", xscjid_ele.get_value())), update.view(), update_opts )) {
+      std::cout << "update_d4000 ksid" << ksid_ele.get_utf8().value << std::endl;
+      if( !d40003.update_one( make_document( kvp("ksid", ksid_ele.get_value())), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40003");
       }
    } catch (...) {
@@ -2441,10 +2441,10 @@ void delete_d40003( mongocxx::collection& d40003, const bsoncxx::document::view&
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
 
-   bsoncxx::document::element xscjid_ele = data["xscjid"]; 
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
    try {
-      std::cout << "delete_d40003 xscjid " <<xscjid_ele.get_utf8().value << std::endl;
-      if( !d40003.delete_one( make_document( kvp("xscjid", xscjid_ele.get_value())))) {
+      std::cout << "delete_d40003 ksid " <<ksid_ele.get_utf8().value << std::endl;
+      if( !d40003.delete_one( make_document( kvp("ksid", ksid_ele.get_value())))) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d40003");
       }
    } catch (...) {
@@ -2773,23 +2773,9 @@ void hblf_mongo_db_plugin_impl::init() {
       auto client = mongo_pool->acquire();
       auto& mongo_conn = *client;
 
-      auto accounts = mongo_conn[db_name][accounts_col];
-      if( accounts.count( make_document()) == 0 ) {
-         auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-               std::chrono::microseconds{fc::time_point::now().time_since_epoch().count()} );
-
-         auto doc = make_document( kvp( "name", name( chain::config::system_account_name ).to_string()),
-                                   kvp( "createdAt", b_date{now} ));
-
-         try {
-            if( !accounts.insert_one( doc.view())) {
-               EOS_ASSERT( false, chain::mongo_db_insert_fail, "Failed to insert account ${n}",
-                           ("n", name( chain::config::system_account_name ).to_string()));
-            }
-         } catch (...) {
-            handle_mongo_exception( "account insert", __LINE__ );
-         }
-
+      auto d00001_COL = mongo_conn[db_name][d00001_col];
+      if( d00001_COL.count( make_document()) == 0 ) {
+             
          try {
             // MongoDB administrators (to enable sharding) :
             //   1. enableSharding database (default to EOS)
@@ -2799,133 +2785,134 @@ void hblf_mongo_db_plugin_impl::init() {
             // students indexes
             auto students = mongo_conn[db_name][students_col];
             students.create_index( bsoncxx::from_json( R"xxx({ "userId" : 1, "_id" : 1 })xxx" ));
-
+            elog("001");
+            
             auto student_traces = mongo_conn[db_name][student_traces_col];
             student_traces.create_index( bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+             elog("002");
             // teachers indexes
             auto teachers = mongo_conn[db_name][teachers_col];
             teachers.create_index( bsoncxx::from_json( R"xxx({ "userId" : 1, "_id" : 1 })xxx" ));
-
+             elog("003");
             auto teacher_traces = mongo_conn[db_name][teacher_traces_col];
             teacher_traces.create_index( bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+             elog("004");
             // accounts indexes
             auto accounts = mongo_conn[db_name][accounts_col];
             accounts.create_index( bsoncxx::from_json( R"xxx({ "name" : 1, "_id" : 1 })xxx" ));
-
+             elog("005");
             //d20001 indexes
             auto  d20001 = mongo_conn[db_name][ d20001_col];
             d20001.create_index(bsoncxx::from_json( R"xxx({ "tzjkid" : 1, "_id" : 1 })xxx" ));
-
+             elog("006");
             auto  d20001_traces =  mongo_conn[db_name][ d20001_traces_col];
             d20001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+             elog("007");
             //d20002 indexes
             auto  d20002 = mongo_conn[db_name][ d20002_col];
              d20002.create_index(bsoncxx::from_json( R"xxx({ "xjh" : 1, "_id" : 1 })xxx" ));
-
+             elog("008");
             auto  d20002_traces = mongo_conn[db_name][ d20002_traces_col];
             d20002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+             elog("009");
             //d80001 indexes
             auto  d80001 = mongo_conn[db_name][ d80001_col];
             d80001.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0010");
             auto  d80001_traces =  mongo_conn[db_name][ d80001_traces_col];
             d80001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-           
+             elog("0011");          
              //d50001 indexes
             auto  d50001 = mongo_conn[db_name][ d50001_col];
             d50001.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0012");
             auto  d50001_traces =  mongo_conn[db_name][ d50001_traces_col];
             d50001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0013");
             //d50002 indexes
             auto  d50002 = mongo_conn[db_name][ d50002_col];
             d50002.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0014");
             auto  d50002_traces =  mongo_conn[db_name][ d50002_traces_col];
             d50002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0015");
             //d50003 indexes
             auto  d50003 = mongo_conn[db_name][ d50003_col];
             d50003.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0016");
             auto  d50003_traces =  mongo_conn[db_name][ d50003_traces_col];
             d50003_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0017");
             //d50004 indexes
             auto  d50004 = mongo_conn[db_name][ d50004_col];
             d50004.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0018");
             auto  d50004_traces =  mongo_conn[db_name][ d50004_traces_col];
             d50004_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0019");
             //d50005 indexes
             auto  d50005 = mongo_conn[db_name][ d50005_col];
             d50005.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0020");
             auto  d50005_traces =  mongo_conn[db_name][ d50005_traces_col];
             d50005_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0021");
             //d50006 indexes
             auto  d50006 = mongo_conn[db_name][ d50006_col];
             d50001.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0022");
             auto  d50006_traces =  mongo_conn[db_name][ d50006_traces_col];
             d50006_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0023");
             //d50007 indexes
             auto  d50007 = mongo_conn[db_name][ d50007_col];
             d50007.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0024");
             auto  d50007_traces =  mongo_conn[db_name][ d50007_traces_col];
             d50007_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0025");
             //d50008 indexes
             auto  d50008 = mongo_conn[db_name][ d50008_col];
             d50008.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
-
+            elog("0026");
             auto  d50008_traces =  mongo_conn[db_name][ d50008_traces_col];
             d50008_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0027");
             //d00001 indexes
             auto  d00001 = mongo_conn[db_name][ d00001_col];
             d00001.create_index(bsoncxx::from_json( R"xxx({ "orgId" : 1, "_id" : 1 })xxx" ));
-
+            elog("0028");
             auto  d00001_traces =  mongo_conn[db_name][ d00001_traces_col];
             d00001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0029");
             //d00007 indexes
             auto  d00007 = mongo_conn[db_name][ d00007_col];
             d00007.create_index(bsoncxx::from_json( R"xxx({ "orgId" : 1, "_id" : 1 })xxx" ));
-
+            elog("0030");
             auto  d00007_traces =  mongo_conn[db_name][ d00007_traces_col];
             d00007_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0031");
              //d00005 indexes
             auto  d00005 = mongo_conn[db_name][ d00005_col];
             d00005.create_index(bsoncxx::from_json( R"xxx({ "userId" : 1, "_id" : 1 })xxx" ));
-
+            elog("0032");
             auto  d00005_traces =  mongo_conn[db_name][ d00005_traces_col];
             d00005_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0033");
              //d00006 indexes
             auto  d00006 = mongo_conn[db_name][ d00006_col];
             d00006.create_index(bsoncxx::from_json( R"xxx({ "userId" : 1, "_id" : 1 })xxx" ));
-
+            elog("0034");
             auto  d00006_traces =  mongo_conn[db_name][ d00006_traces_col];
             d00006_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0035");
             //d40003 indexes
             auto  d40003 = mongo_conn[db_name][ d40003_col];
-            d40003.create_index(bsoncxx::from_json( R"xxx({ "xscjid : 1, "_id" : 1 })xxx" ));
-
+            d40003.create_index(bsoncxx::from_json( R"xxx({ "ksid ": 1, "_id" : 1 })xxx" ));
+            elog("0036");
             auto  d40003_traces =  mongo_conn[db_name][ d40003_traces_col];
             d40003_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
+            elog("0037");
          } catch (...) {
             handle_mongo_exception( "create indexes", __LINE__ );
          }
