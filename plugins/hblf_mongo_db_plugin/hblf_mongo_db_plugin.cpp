@@ -682,7 +682,7 @@ void hblf_mongo_db_plugin_impl::consume_blocks() {
       _d00005_traces = mongo_conn[db_name][d00005_traces_col];
       _d00006= mongo_conn[db_name][d00006_col];
       _d00006_traces = mongo_conn[db_name][d00006_traces_col];
-       _d40003= mongo_conn[db_name][d40003_col];
+      _d40003= mongo_conn[db_name][d40003_col];
       _d40003_traces = mongo_conn[db_name][d40003_traces_col];
       _d30001= mongo_conn[db_name][d30001_col];
       _d30001_traces = mongo_conn[db_name][d30001_traces_col];
@@ -2824,7 +2824,7 @@ void create_d40001( mongocxx::collection& d40001, const bsoncxx::document::view&
                                        kvp("block_time",b_date{block_time})
                                        )));
    try {
-      std::cout << "create_d40003 ksid" <<ksid_ele.get_utf8().value << std::endl;
+      std::cout << "create_d40001 ksid" <<ksid_ele.get_utf8().value << std::endl;
       if( !d40001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40001");
       }
@@ -2855,7 +2855,7 @@ void update_d40001(mongocxx::collection& d40001,const bsoncxx::document::view& d
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40001");
       }
    } catch (...) {
-      handle_mongo_exception( "update_d40003", __LINE__ );
+      handle_mongo_exception( "update_d40001", __LINE__ );
    }
 }
 
