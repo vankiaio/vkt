@@ -684,31 +684,22 @@ void hblf_mongo_db_plugin_impl::consume_blocks() {
       _d00006_traces = mongo_conn[db_name][d00006_traces_col];
        _d40003= mongo_conn[db_name][d40003_col];
       _d40003_traces = mongo_conn[db_name][d40003_traces_col];
-
       _d30001= mongo_conn[db_name][d30001_col];
       _d30001_traces = mongo_conn[db_name][d30001_traces_col];
-
       _d30002= mongo_conn[db_name][d30002_col];
       _d30002_traces = mongo_conn[db_name][d30002_traces_col];
-
       _d30003= mongo_conn[db_name][d30003_col];
       _d30003_traces = mongo_conn[db_name][d30003_traces_col];
-
       _d30004= mongo_conn[db_name][d30004_col];
       _d30004_traces = mongo_conn[db_name][d30004_traces_col];
-
       _d40001= mongo_conn[db_name][d40001_col];
       _d40001_traces = mongo_conn[db_name][d40001_traces_col];
-
       _d40002= mongo_conn[db_name][d40002_col];
       _d40002_traces = mongo_conn[db_name][d40002_traces_col];
-
       _d40004= mongo_conn[db_name][d40004_col];
       _d40004_traces = mongo_conn[db_name][d40004_traces_col];
-
       _d40005= mongo_conn[db_name][d40005_col];
       _d40005_traces = mongo_conn[db_name][d40005_traces_col];
-
       _d40006= mongo_conn[db_name][d40006_col];
       _d40006_traces = mongo_conn[db_name][d40006_traces_col];
 
@@ -3501,6 +3492,17 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     d30003_traces.drop(); 
     d30004.drop();
     d30004_traces.drop(); 
+    d40001.drop();
+    d40001_traces.drop(); 
+    d40002.drop();
+    d40002_traces.drop(); 
+    d40004.drop();
+    d40004_traces.drop(); 
+    d40005.drop();
+    d40005_traces.drop(); 
+    d40006.drop();
+    d40006_traces.drop(); 
+
 
    ilog("done wipe_database");
 }
@@ -3681,63 +3683,63 @@ void hblf_mongo_db_plugin_impl::init() {
             auto  d30001 = mongo_conn[db_name][ d30001_col];
             d30001.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d30001_traces =  mongo_conn[db_name][ d30001_traces_col];
+            auto  d30001_traces =  mongo_conn[db_name][d30001_traces_col];
             d30001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d30002 indexes
-            auto  d30002 = mongo_conn[db_name][ d30002_col];
+            auto  d30002 = mongo_conn[db_name][d30002_col];
             d30002.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d30002_traces =  mongo_conn[db_name][ d30002_traces_col];
+            auto  d30002_traces =  mongo_conn[db_name][d30002_traces_col];
             d30002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d30003 indexes
-            auto  d30003 = mongo_conn[db_name][ d30003_col];
+            auto  d30003 = mongo_conn[db_name][d30003_col];
             d30003.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d30003_traces =  mongo_conn[db_name][ d30003_traces_col];
+            auto  d30003_traces =  mongo_conn[db_name][d30003_traces_col];
             d30003_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
              //d30004 indexes
-            auto  d30004 = mongo_conn[db_name][ d30004_col];
+            auto  d30004 = mongo_conn[db_name][d30004_col];
             d30004.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d30004_traces =  mongo_conn[db_name][ d30004_traces_col];
+            auto  d30004_traces =  mongo_conn[db_name][d30004_traces_col];
             d30004_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d40001 indexes
-            auto  d40001 = mongo_conn[db_name][ d40001_col];
+            auto  d40001 = mongo_conn[db_name][d40001_col];
             d40001.create_index(bsoncxx::from_json( R"xxx({ "ksid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d40001_traces =  mongo_conn[db_name][ d40001_traces_col];
+            auto  d40001_traces =  mongo_conn[db_name][d40001_traces_col];
             d40001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d40002 indexes
-            auto  d40002 = mongo_conn[db_name][ d40002_col];
+            auto  d40002 = mongo_conn[db_name][d40002_col];
             d40002.create_index(bsoncxx::from_json( R"xxx({ "ksid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d40002_traces =  mongo_conn[db_name][ d40002_traces_col];
+            auto  d40002_traces =  mongo_conn[db_name][d40002_traces_col];
             d40002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d40004 indexes
-            auto  d40004 = mongo_conn[db_name][ d40004_col];
+            auto  d40004 = mongo_conn[db_name][d40004_col];
             d40004.create_index(bsoncxx::from_json( R"xxx({ "sjid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d40004_traces =  mongo_conn[db_name][ d40003_traces_col];
+            auto  d40004_traces =  mongo_conn[db_name][d40004_traces_col];
             d40004_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d40005 indexes
-            auto  d40005 = mongo_conn[db_name][ d40005_col];
+            auto  d40005 = mongo_conn[db_name][d40005_col];
             d40005.create_index(bsoncxx::from_json( R"xxx({ "ksid ": 1, "_id" : 1 })xxx" ));
             
-            auto  d40005_traces =  mongo_conn[db_name][ d40005_traces_col];
+            auto  d40005_traces =  mongo_conn[db_name][d40005_traces_col];
             d40005_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d40006 indexes
-            auto  d40006= mongo_conn[db_name][ d40006_col];
+            auto  d40006= mongo_conn[db_name][d40006_col];
             d40006.create_index(bsoncxx::from_json( R"xxx({ "zsdid": 1, "_id" : 1 })xxx" ));
             
-            auto  d40006_traces =  mongo_conn[db_name][ d40006_traces_col];
+            auto  d40006_traces =  mongo_conn[db_name][d40006_traces_col];
             d40006_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
 
