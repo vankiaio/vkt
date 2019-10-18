@@ -170,7 +170,24 @@ public:
    mongocxx::collection _d00006_traces;
    mongocxx::collection _d40003;
    mongocxx::collection _d40003_traces;
-
+   mongocxx::collection _d30001;
+   mongocxx::collection _d30001_traces;
+   mongocxx::collection _d30002;
+   mongocxx::collection _d30002_traces;
+   mongocxx::collection _d30003;
+   mongocxx::collection _d30003_traces;
+   mongocxx::collection _d30004;
+   mongocxx::collection _d30004_traces;
+   mongocxx::collection _d40001;
+   mongocxx::collection _d40001_traces;
+   mongocxx::collection _d40002;
+   mongocxx::collection _d40002_traces;
+   mongocxx::collection _d40004;
+   mongocxx::collection _d40004_traces;
+   mongocxx::collection _d40005;
+   mongocxx::collection _d40005_traces;
+   mongocxx::collection _d40006;
+   mongocxx::collection _d40006_traces;
 
    mongocxx::collection _accounts;
 
@@ -259,10 +276,36 @@ public:
    static const action_name addd00006;       //教师信息action
    static const action_name modd00006;
    static const action_name deld00006;
-   static const action_name addd40003;       //考试成绩信息action
+   static const action_name addd40003;       //考试成绩信息action     
    static const action_name modd40003;
    static const action_name deld40003;
-
+   static const action_name addd30001;      //师德培训
+   static const action_name modd30001;
+   static const action_name deld30001;
+   static const action_name addd30002;     //师德考核
+   static const action_name modd30002;
+   static const action_name deld30002;
+   static const action_name addd30003;     //师德奖励
+   static const action_name modd30003;
+   static const action_name deld30003;
+   static const action_name addd30004;     //师德惩处
+   static const action_name modd30004;
+   static const action_name deld30004;
+   static const action_name addd40001;       //学生考试信息action     
+   static const action_name modd40001;
+   static const action_name deld40001;
+   static const action_name addd40002;       //考试参考科目情况action     
+   static const action_name modd40002;
+   static const action_name deld40002;
+   static const action_name addd40004;       //考试试卷信息action     
+   static const action_name modd40004;
+   static const action_name deld40004;
+   static const action_name addd40005;       //试题知识点action     
+   static const action_name modd40005;
+   static const action_name deld40005;
+   static const action_name addd40006;       //学生考试试题得分action     
+   static const action_name modd40006;
+   static const action_name deld40006;
    
 
 
@@ -299,6 +342,24 @@ public:
    static const std::string d00006_traces_col;
    static const std::string d40003_col;               //考试成绩信息 
    static const std::string d40003_traces_col;
+   static const std::string d30001_col;               //师德 培训
+   static const std::string d30001_traces_col;
+   static const std::string d30002_col;               //师德考核 
+   static const std::string d30002_traces_col;
+   static const std::string d30003_col;               //师德奖励 
+   static const std::string d30003_traces_col;
+   static const std::string d30004_col;               //师德惩处
+   static const std::string d30004_traces_col;
+   static const std::string d40001_col;               //学生考试信息
+   static const std::string d40001_traces_col;
+   static const std::string d40002_col;               //考试参考科目情况  
+   static const std::string d40002_traces_col;
+   static const std::string d40004_col;               //考试试卷信息
+   static const std::string d40004_traces_col;
+   static const std::string d40005_col;               //试题知识点 
+   static const std::string d40005_traces_col;
+   static const std::string d40006_col;               //学生考试试题得分 
+   static const std::string d40006_traces_col;
 
    static const std::string accounts_col;
 };
@@ -354,8 +415,33 @@ const action_name hblf_mongo_db_plugin_impl::deld00006 = N(delzerooosix);
 const action_name hblf_mongo_db_plugin_impl::addd40003 = N(addfouooothi);
 const action_name hblf_mongo_db_plugin_impl::modd40003 = N(modfouooothi);
 const action_name hblf_mongo_db_plugin_impl::deld40003 = N(delfouooothi);
-
-
+const action_name hblf_mongo_db_plugin_impl::addd30001 = N(addthiooofir);
+const action_name hblf_mongo_db_plugin_impl::modd30001 = N(modthiooofir);
+const action_name hblf_mongo_db_plugin_impl::deld30001 = N(delthiooofir);
+const action_name hblf_mongo_db_plugin_impl::addd30002 = N(addthiooosec);
+const action_name hblf_mongo_db_plugin_impl::modd30002 = N(modthiooosec);
+const action_name hblf_mongo_db_plugin_impl::deld30002 = N(delthiooosec);
+const action_name hblf_mongo_db_plugin_impl::addd30003 = N(addthiooothi);
+const action_name hblf_mongo_db_plugin_impl::modd30003 = N(modthiooothi);
+const action_name hblf_mongo_db_plugin_impl::deld30003 = N(delthiooothi);
+const action_name hblf_mongo_db_plugin_impl::addd30004 = N(addthiooofou);
+const action_name hblf_mongo_db_plugin_impl::modd30004 = N(modthiooofou);
+const action_name hblf_mongo_db_plugin_impl::deld30004 = N(delthiooofou);
+const action_name hblf_mongo_db_plugin_impl::addd40001 = N(addfouooofir);
+const action_name hblf_mongo_db_plugin_impl::modd40001 = N(modfouooofir);
+const action_name hblf_mongo_db_plugin_impl::deld40001 = N(delfouooofir);
+const action_name hblf_mongo_db_plugin_impl::addd40002 = N(addfouooosec);
+const action_name hblf_mongo_db_plugin_impl::modd40002 = N(modfouooosec);
+const action_name hblf_mongo_db_plugin_impl::deld40002 = N(delfouooosec);
+const action_name hblf_mongo_db_plugin_impl::addd40004 = N(addfouooofou);
+const action_name hblf_mongo_db_plugin_impl::modd40004 = N(modfouooofou);
+const action_name hblf_mongo_db_plugin_impl::deld40004 = N(delfouooofou);
+const action_name hblf_mongo_db_plugin_impl::addd40005 = N(addfouooofif);
+const action_name hblf_mongo_db_plugin_impl::modd40005 = N(modfouooofif);
+const action_name hblf_mongo_db_plugin_impl::deld40005 = N(delfouooofif);
+const action_name hblf_mongo_db_plugin_impl::addd40006 = N(addfouooosix);
+const action_name hblf_mongo_db_plugin_impl::modd40006 = N(modfouooosix);
+const action_name hblf_mongo_db_plugin_impl::deld40006 = N(delfouooosix);
 
 
 
@@ -393,6 +479,26 @@ const std::string hblf_mongo_db_plugin_impl::d00006_col = "d00006";             
 const std::string hblf_mongo_db_plugin_impl::d00006_traces_col = "d00006_traces";
 const std::string hblf_mongo_db_plugin_impl::d40003_col = "d40003";                                      //定义考试成绩信息表名
 const std::string hblf_mongo_db_plugin_impl::d40003_traces_col = "d40003_traces";
+const std::string hblf_mongo_db_plugin_impl::d30001_col = "d30001";                                      //定义师德培训表名
+const std::string hblf_mongo_db_plugin_impl::d30001_traces_col = "d30001_traces";
+const std::string hblf_mongo_db_plugin_impl::d30002_col = "d30002";                                      //定义师德考核表名
+const std::string hblf_mongo_db_plugin_impl::d30002_traces_col = "d30002_traces";
+const std::string hblf_mongo_db_plugin_impl::d30003_col = "d30003";                                      //定义师德奖励表名
+const std::string hblf_mongo_db_plugin_impl::d30003_traces_col = "d30003_traces";
+const std::string hblf_mongo_db_plugin_impl::d30004_col = "d30004";                                      //定义师德惩处表名
+const std::string hblf_mongo_db_plugin_impl::d30004_traces_col = "d30004_traces";
+const std::string hblf_mongo_db_plugin_impl::d40001_col = "d40001";                                      
+const std::string hblf_mongo_db_plugin_impl::d40001_traces_col = "d40001_traces";
+const std::string hblf_mongo_db_plugin_impl::d40002_col = "d40002";                                      
+const std::string hblf_mongo_db_plugin_impl::d40002_traces_col = "d40002_traces";
+const std::string hblf_mongo_db_plugin_impl::d40004_col = "d40004";                                      
+const std::string hblf_mongo_db_plugin_impl::d40004_traces_col = "d40004_traces";
+const std::string hblf_mongo_db_plugin_impl::d40005_col = "d40005";                                      
+const std::string hblf_mongo_db_plugin_impl::d40005_traces_col = "d40005_traces";
+const std::string hblf_mongo_db_plugin_impl::d40006_col = "d40006";                                      
+const std::string hblf_mongo_db_plugin_impl::d40006_traces_col = "d40006_traces";
+
+
 
 const std::string hblf_mongo_db_plugin_impl::accounts_col = "accounts";
 
@@ -578,6 +684,35 @@ void hblf_mongo_db_plugin_impl::consume_blocks() {
       _d00006_traces = mongo_conn[db_name][d00006_traces_col];
        _d40003= mongo_conn[db_name][d40003_col];
       _d40003_traces = mongo_conn[db_name][d40003_traces_col];
+
+      _d30001= mongo_conn[db_name][d30001_col];
+      _d30001_traces = mongo_conn[db_name][d30001_traces_col];
+
+      _d30002= mongo_conn[db_name][d30002_col];
+      _d30002_traces = mongo_conn[db_name][d30002_traces_col];
+
+      _d30003= mongo_conn[db_name][d30003_col];
+      _d30003_traces = mongo_conn[db_name][d30003_traces_col];
+
+      _d30004= mongo_conn[db_name][d30004_col];
+      _d30004_traces = mongo_conn[db_name][d30004_traces_col];
+
+      _d40001= mongo_conn[db_name][d40001_col];
+      _d40001_traces = mongo_conn[db_name][d40001_traces_col];
+
+      _d40002= mongo_conn[db_name][d40002_col];
+      _d40002_traces = mongo_conn[db_name][d40002_traces_col];
+
+      _d40004= mongo_conn[db_name][d40004_col];
+      _d40004_traces = mongo_conn[db_name][d40004_traces_col];
+
+      _d40005= mongo_conn[db_name][d40005_col];
+      _d40005_traces = mongo_conn[db_name][d40005_traces_col];
+
+      _d40006= mongo_conn[db_name][d40006_col];
+      _d40006_traces = mongo_conn[db_name][d40006_traces_col];
+
+
       _accounts = mongo_conn[db_name][accounts_col];
 
 
@@ -912,6 +1047,16 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    mongocxx::bulk_write bulk_action_d00005_traces = _d00005_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_d00006_traces = _d00006_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_d40003_traces = _d40003_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d30001_traces = _d30001_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d30002_traces = _d30002_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d30003_traces = _d30003_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d30004_traces = _d30004_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d40001_traces = _d40001_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d40002_traces = _d40002_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d40004_traces = _d40004_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d40005_traces = _d40005_traces.create_bulk_write(bulk_opts);
+   mongocxx::bulk_write bulk_action_d40006_traces = _d40006_traces.create_bulk_write(bulk_opts);
+   
    
    
 
@@ -931,6 +1076,16 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
    bool write_d00005_atraces = false;
    bool write_d00006_atraces = false;
    bool write_d40003_atraces = false;
+   bool write_d30001_atraces = false;
+   bool write_d30002_atraces = false;
+   bool write_d30003_atraces = false;
+   bool write_d30004_atraces = false;
+   bool write_d40001_atraces = false;
+   bool write_d40002_atraces = false;
+   bool write_d40004_atraces = false;
+   bool write_d40005_atraces = false;
+   bool write_d40006_atraces = false;
+
    bool write_ttrace = false; // filters apply to transaction_traces as well
    bool executed = t->receipt.valid() && t->receipt->status == chain::transaction_receipt_header::executed;
 
@@ -969,6 +1124,24 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
                 write_d00006_atraces |= add_action_trace(bulk_action_d00006_traces,atrace,t,executed,now,write_ttrace);
          }else if(atrace.act.name == addd40003 || atrace.act.name == modd40003 || atrace.act.name == deld40003){
                write_d40003_atraces |= add_action_trace(bulk_action_d40003_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd30001 || atrace.act.name == modd30001 || atrace.act.name == deld30001){
+               write_d30001_atraces |= add_action_trace(bulk_action_d30001_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd30002 || atrace.act.name == modd30002 || atrace.act.name == deld30002){
+                write_d30002_atraces |= add_action_trace(bulk_action_d30002_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd30003 || atrace.act.name == modd30003 || atrace.act.name == deld30003){
+                write_d30003_atraces |= add_action_trace(bulk_action_d30003_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd30004 || atrace.act.name == modd30004 || atrace.act.name == deld30004){
+                write_d30004_atraces |= add_action_trace(bulk_action_d30004_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd40001 || atrace.act.name == modd40001 || atrace.act.name == deld40001){
+               write_d40001_atraces |= add_action_trace(bulk_action_d40001_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd40002 || atrace.act.name == modd40002 || atrace.act.name == deld40002){
+               write_d40002_atraces |= add_action_trace(bulk_action_d40002_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd40004 || atrace.act.name == modd40004 || atrace.act.name == deld40004){
+               write_d40004_atraces |= add_action_trace(bulk_action_d40004_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd40005 || atrace.act.name == modd40005 || atrace.act.name == deld40005){
+               write_d40005_atraces |= add_action_trace(bulk_action_d40005_traces,atrace,t,executed,now,write_ttrace);
+         }else if(atrace.act.name == addd40006 || atrace.act.name == modd40006 || atrace.act.name == deld40006){
+               write_d40006_atraces |= add_action_trace(bulk_action_d40006_traces,atrace,t,executed,now,write_ttrace);
          }
       } catch(...) {
          handle_mongo_exception("add action traces", __LINE__);
@@ -1149,6 +1322,108 @@ void hblf_mongo_db_plugin_impl::_process_applied_transaction( const chain::trans
          handle_mongo_exception( "action traces insert", __LINE__ );
       }
    }
+
+    if( write_d30001_atraces ) {
+      try {
+         if( !bulk_action_d30001_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+    if( write_d30002_atraces ) {
+      try {
+         if( !bulk_action_d30002_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+    if( write_d30003_atraces ) {
+      try {
+         if( !bulk_action_d30003_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+    if( write_d30004_atraces ) {
+      try {
+         if( !bulk_action_d30004_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+    if( write_d40001_atraces ) {
+      try {
+         if( !bulk_action_d40001_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+    if( write_d40002_atraces ) {
+      try {
+         if( !bulk_action_d40002_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+   if( write_d40004_atraces ) {
+      try {
+         if( !bulk_action_d40004_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+   if( write_d40005_atraces ) {
+      try {
+         if( !bulk_action_d40005_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+   if( write_d40006_atraces ) {
+      try {
+         if( !bulk_action_d40006_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+
+
 
 }
 
@@ -2263,6 +2538,632 @@ void delete_d40003( mongocxx::collection& d40003, const bsoncxx::document::view&
    }
 }
 
+//创建师德培训信息表
+void create_d30001( mongocxx::collection& d30001, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d30001 jsid" <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d30001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d30001", __LINE__ );
+   }
+}
+
+//更新师德培训信息
+void update_d30001(mongocxx::collection& d30001,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d30001 jsid" << jsid_ele.get_utf8().value << std::endl;
+      if( !d30001.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d30001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d30001", __LINE__ );
+   }
+}
+
+//删除师德培训信息表
+void delete_d30001( mongocxx::collection& d30001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   try {
+      std::cout << "delete_d30001 jsid " <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30001.delete_one( make_document( kvp("jsid", jsid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d30001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d30001", __LINE__ );
+   }
+}
+
+
+//创建师德考核信息表
+void create_d30002( mongocxx::collection& d30002, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d30002 jsid" <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30002.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d30002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d30002", __LINE__ );
+   }
+}
+
+//更新师德考核信息
+void update_d30002(mongocxx::collection& d30002,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d30002 jsid" << jsid_ele.get_utf8().value << std::endl;
+      if( !d30002.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d30002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d30002", __LINE__ );
+   }
+}
+
+//删除师德考核信息表
+void delete_d30002( mongocxx::collection& d30002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   try {
+      std::cout << "delete_d30002 jsid " <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30002.delete_one( make_document( kvp("jsid", jsid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d30002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d30002", __LINE__ );
+   }
+}
+
+//创建师德奖励信息表
+void create_d30003( mongocxx::collection& d30003, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d30003 jsid" <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30003.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d30003");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d30003", __LINE__ );
+   }
+}
+
+//更新师德奖励信息
+void update_d30003(mongocxx::collection& d30003,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d30002 jsid" << jsid_ele.get_utf8().value << std::endl;
+      if( !d30003.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d30003");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d30003", __LINE__ );
+   }
+}
+
+//删除师德奖励信息表
+void delete_d30003( mongocxx::collection& d30003, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   try {
+      std::cout << "delete_d30003 jsid " <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30003.delete_one( make_document( kvp("jsid", jsid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d30003");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d30003", __LINE__ );
+   }
+}
+
+
+//创建师德惩处信息表
+void create_d30004( mongocxx::collection& d30004, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "jsid", jsid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d30004 jsid" <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30004.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d30004");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d30004", __LINE__ );
+   }
+}
+
+//更新师德惩处信息
+void update_d30004(mongocxx::collection& d30004,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "jsid", jsid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d30004 jsid" << jsid_ele.get_utf8().value << std::endl;
+      if( !d30004.update_one( make_document( kvp("jsid", jsid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d30003");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d30004", __LINE__ );
+   }
+}
+
+//删除师德惩处信息表
+void delete_d30004( mongocxx::collection& d30004, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element jsid_ele = data["jsid"]; 
+   try {
+      std::cout << "delete_d30004 jsid " <<jsid_ele.get_utf8().value << std::endl;
+      if( !d30004.delete_one( make_document( kvp("jsid", jsid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d30004");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d30004", __LINE__ );
+   }
+}
+
+//创建学生考试信息表
+void create_d40001( mongocxx::collection& d40001, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "ksid", ksid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d40003 ksid" <<ksid_ele.get_utf8().value << std::endl;
+      if( !d40001.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d40001", __LINE__ );
+   }
+}
+
+//更新考试信息
+void update_d40001(mongocxx::collection& d40001,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "ksid", ksid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d40001 ksid" << ksid_ele.get_utf8().value << std::endl;
+      if( !d40001.update_one( make_document( kvp("ksid", ksid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d40003", __LINE__ );
+   }
+}
+
+//删除考试信息表
+void delete_d40001( mongocxx::collection& d40001, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   try {
+      std::cout << "delete_d40001 ksid " <<ksid_ele.get_utf8().value << std::endl;
+      if( !d40001.delete_one( make_document( kvp("ksid", ksid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d40001");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d40001", __LINE__ );
+   }
+}
+
+//创建考试班级科目表
+void create_d40002( mongocxx::collection& d40002, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "ksid", ksid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d40002 ksid" <<ksid_ele.get_utf8().value << std::endl;
+      if( !d40002.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d40002", __LINE__ );
+   }
+}
+
+//更新考试班级科目表
+void update_d40002(mongocxx::collection& d40002,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "ksid", ksid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d40002 ksid" << ksid_ele.get_utf8().value << std::endl;
+      if( !d40002.update_one( make_document( kvp("ksid", ksid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d40002", __LINE__ );
+   }
+}
+
+//删除考试班级科目表
+void delete_d40002( mongocxx::collection& d40002, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   try {
+      std::cout << "delete_d40002 ksid " <<ksid_ele.get_utf8().value << std::endl;
+      if( !d40002.delete_one( make_document( kvp("ksid", ksid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d40002");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d40002", __LINE__ );
+   }
+}
+
+
+//创建考试试卷信息表
+void create_d40004( mongocxx::collection& d40004, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element sjid_ele = data["sjid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "sjid", sjid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d40004 sjid" <<sjid_ele.get_utf8().value << std::endl;
+      if( !d40004.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40004");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d40004", __LINE__ );
+   }
+}
+
+//更新考试试卷信息表
+void update_d40004(mongocxx::collection& d40004,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element sjid_ele = data["sjid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "sjid", sjid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d40004 sjid" << sjid_ele.get_utf8().value << std::endl;
+      if( !d40004.update_one( make_document( kvp("sjid", sjid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40004");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d40004", __LINE__ );
+   }
+}
+
+//删除考试试卷信息表
+void delete_d40004( mongocxx::collection& d40004, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element sjid_ele = data["sjid"]; 
+   try {
+      std::cout << "delete_d40004 sjid " <<sjid_ele.get_utf8().value << std::endl;
+      if( !d40004.delete_one( make_document( kvp("sjid", sjid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d40004");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d40004", __LINE__ );
+   }
+}
+
+
+//创建学生考试试题得分表
+void create_d40005( mongocxx::collection& d40005, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "ksid", ksid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d40005 ksid" <<ksid_ele.get_utf8().value << std::endl;
+      if( !d40005.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40005");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d40003", __LINE__ );
+   }
+}
+
+//更新学生考试试题得分表
+void update_d40005(mongocxx::collection& d40005,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "ksid", ksid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d40005 ksid" << ksid_ele.get_utf8().value << std::endl;
+      if( !d40005.update_one( make_document( kvp("ksid", ksid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40005");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d40005", __LINE__ );
+   }
+}
+
+//删除学生考试试题得分表
+void delete_d40005( mongocxx::collection& d40005, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element ksid_ele = data["ksid"]; 
+   try {
+      std::cout << "delete_d40005 ksid " <<ksid_ele.get_utf8().value << std::endl;
+      if( !d40005.delete_one( make_document( kvp("ksid", ksid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d40005");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d40005", __LINE__ );
+   }
+}
+
+
+//创建试题知识点表
+void create_d40006( mongocxx::collection& d40006, const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( true );
+
+   bsoncxx::document::element zsdid_ele = data["zsdid"]; 
+   auto update = make_document(
+         kvp( "$set", make_document(   kvp( "zsdid", zsdid_ele.get_value()),
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       )));
+   try {
+      std::cout << "create_d40006 zsdid" <<zsdid_ele.get_utf8().value << std::endl;
+      if( !d40006.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d40006");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d40006", __LINE__ );
+   }
+}
+
+//更新创建试题知识点表
+void update_d40006(mongocxx::collection& d40006,const bsoncxx::document::view& data,std::chrono::milliseconds& now ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   mongocxx::options::update update_opts{};
+   update_opts.upsert( false );
+    
+   bsoncxx::document::element zsdid_ele = data["zsdid"]; 
+   auto update = make_document( 
+       kvp( "$set", make_document(  kvp( "zsdid", zsdid_ele.get_value()),
+                                    kvp( "data", data),
+                                    kvp( "createdAt", b_date{now} ),
+                                    kvp("block_time",b_date{block_time})
+                                    )));
+   try {
+      std::cout << "update_d40006 ksid" << zsdid_ele.get_utf8().value << std::endl;
+      if( !d40006.update_one( make_document( kvp("zsdid", zsdid_ele.get_value())), update.view(), update_opts )) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d40006");
+      }
+   } catch (...) {
+      handle_mongo_exception( "update_d40006", __LINE__ );
+   }
+}
+
+//删除创建试题知识点表
+void delete_d40006( mongocxx::collection& d40006, const bsoncxx::document::view& data, std::chrono::milliseconds& now ) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   bsoncxx::document::element zsdid_ele = data["zsdid"]; 
+   try {
+      std::cout << "delete_d40006 zsdid " <<zsdid_ele.get_utf8().value << std::endl;
+      if( !d40006.delete_one( make_document( kvp("zsdid", zsdid_ele.get_value())))) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d40006");
+      }
+   } catch (...) {
+      handle_mongo_exception( "delete_d40006", __LINE__ );
+   }
+}
+
 
 
 }
@@ -2390,6 +3291,60 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
               update_d40003(_d40003,datadoc,now,block_time);
       }else if(act.name == deld40003){
                delete_d40003(_d40003,datadoc,now);
+      }else if(act.name == addd30001){
+               create_d30001(_d30001,datadoc,now,block_time);
+      }else if(act.name == modd30001){
+               update_d30001(_d30001,datadoc,now,block_time);
+      }else if(act.name == deld30001){
+               delete_d30001(_d30001,datadoc,now);
+      }else if(act.name == addd30002){
+               create_d30002(_d30002,datadoc,now,block_time);
+      }else if(act.name == modd30002){
+               update_d30002(_d30002,datadoc,now,block_time);
+      }else if(act.name == deld30002){
+               delete_d30002(_d30002,datadoc,now);
+      }else if(act.name == addd30003){
+               create_d30003(_d30003,datadoc,now,block_time);
+      }else if(act.name == modd30003){
+               update_d30003(_d30003,datadoc,now,block_time);
+      }else if(act.name == deld30003){
+               delete_d30003(_d30003,datadoc,now);
+      }else if(act.name == addd30004){
+               create_d30004(_d30004,datadoc,now,block_time);
+      }else if(act.name == modd30004){
+               update_d30004(_d30004,datadoc,now,block_time);
+      }else if(act.name == deld30004){
+               delete_d30004(_d30004,datadoc,now);
+      }else if(act.name == addd40001){
+               create_d40001(_d40001,datadoc,now,block_time);
+      }else if(act.name == modd40001){
+              update_d40001(_d40001,datadoc,now,block_time);
+      }else if(act.name == deld40001){
+               delete_d40001(_d40001,datadoc,now);
+      }else if(act.name == addd40002){
+               create_d40002(_d40002,datadoc,now,block_time);
+      }else if(act.name == modd40002){
+              update_d40002(_d40002,datadoc,now,block_time);
+      }else if(act.name == deld40002){
+               delete_d40002(_d40002,datadoc,now);
+      }else if(act.name == addd40004){
+               create_d40004(_d40004,datadoc,now,block_time);
+      }else if(act.name == modd40004){
+              update_d40004(_d40004,datadoc,now,block_time);
+      }else if(act.name == deld40004){
+               delete_d40004(_d40004,datadoc,now);
+      }else if(act.name == addd40005){
+               create_d40005(_d40005,datadoc,now,block_time);
+      }else if(act.name == modd40005){
+              update_d40005(_d40005,datadoc,now,block_time);
+      }else if(act.name == deld40005){
+               delete_d40005(_d40005,datadoc,now);
+      }else if(act.name == addd40006){
+               create_d40006(_d40006,datadoc,now,block_time);
+      }else if(act.name == modd40006){
+              update_d40006(_d40006,datadoc,now,block_time);
+      }else if(act.name == deld40006){
+               delete_d40006(_d40006,datadoc,now);
       }
       
    } catch( fc::exception& e ) {
@@ -2479,6 +3434,29 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     auto d00006_traces = mongo_conn[db_name][d00006_traces_col];
     auto d40003 = mongo_conn[db_name][d40003_col];
     auto d40003_traces = mongo_conn[db_name][d40003_traces_col];
+
+    auto d30001 = mongo_conn[db_name][d30001_col];
+    auto d30001_traces = mongo_conn[db_name][d30001_traces_col];
+    auto d30002 = mongo_conn[db_name][d30002_col];
+    auto d30002_traces = mongo_conn[db_name][d30002_traces_col];
+    auto d30003 = mongo_conn[db_name][d30003_col];
+    auto d30003_traces = mongo_conn[db_name][d30003_traces_col];
+    auto d30004 = mongo_conn[db_name][d30004_col];
+    auto d30004_traces = mongo_conn[db_name][d30004_traces_col];
+
+    auto d40001 = mongo_conn[db_name][d40001_col];
+    auto d40001_traces = mongo_conn[db_name][d40001_traces_col];
+    auto d40002 = mongo_conn[db_name][d40002_col];
+    auto d40002_traces = mongo_conn[db_name][d40002_traces_col];
+    auto d40004 = mongo_conn[db_name][d40004_col];
+    auto d40004_traces = mongo_conn[db_name][d40004_traces_col];
+    auto d40005 = mongo_conn[db_name][d40005_col];
+    auto d40005_traces = mongo_conn[db_name][d40005_traces_col];
+    auto d40006 = mongo_conn[db_name][d40006_col];
+    auto d40006_traces = mongo_conn[db_name][d40006_traces_col];
+
+
+    
    
    
 
@@ -2515,7 +3493,14 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     d00006_traces.drop(); 
     d40003.drop();
     d40003_traces.drop();           
-    
+    d30001.drop();
+    d30001_traces.drop(); 
+    d30002.drop();
+    d30002_traces.drop(); 
+    d30003.drop();
+    d30003_traces.drop(); 
+    d30004.drop();
+    d30004_traces.drop(); 
 
    ilog("done wipe_database");
 }
@@ -2691,6 +3676,74 @@ void hblf_mongo_db_plugin_impl::init() {
             
             auto  d40003_traces =  mongo_conn[db_name][ d40003_traces_col];
             d40003_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d30001 indexes
+            auto  d30001 = mongo_conn[db_name][ d30001_col];
+            d30001.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d30001_traces =  mongo_conn[db_name][ d30001_traces_col];
+            d30001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d30002 indexes
+            auto  d30002 = mongo_conn[db_name][ d30002_col];
+            d30002.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d30002_traces =  mongo_conn[db_name][ d30002_traces_col];
+            d30002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d30003 indexes
+            auto  d30003 = mongo_conn[db_name][ d30003_col];
+            d30003.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d30003_traces =  mongo_conn[db_name][ d30003_traces_col];
+            d30003_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+             //d30004 indexes
+            auto  d30004 = mongo_conn[db_name][ d30004_col];
+            d30004.create_index(bsoncxx::from_json( R"xxx({ "jsid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d30004_traces =  mongo_conn[db_name][ d30004_traces_col];
+            d30004_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d40001 indexes
+            auto  d40001 = mongo_conn[db_name][ d40001_col];
+            d40001.create_index(bsoncxx::from_json( R"xxx({ "ksid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d40001_traces =  mongo_conn[db_name][ d40001_traces_col];
+            d40001_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d40002 indexes
+            auto  d40002 = mongo_conn[db_name][ d40002_col];
+            d40002.create_index(bsoncxx::from_json( R"xxx({ "ksid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d40002_traces =  mongo_conn[db_name][ d40002_traces_col];
+            d40002_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d40004 indexes
+            auto  d40004 = mongo_conn[db_name][ d40004_col];
+            d40004.create_index(bsoncxx::from_json( R"xxx({ "sjid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d40004_traces =  mongo_conn[db_name][ d40003_traces_col];
+            d40004_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d40005 indexes
+            auto  d40005 = mongo_conn[db_name][ d40005_col];
+            d40005.create_index(bsoncxx::from_json( R"xxx({ "ksid ": 1, "_id" : 1 })xxx" ));
+            
+            auto  d40005_traces =  mongo_conn[db_name][ d40005_traces_col];
+            d40005_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+            //d40006 indexes
+            auto  d40006= mongo_conn[db_name][ d40006_col];
+            d40006.create_index(bsoncxx::from_json( R"xxx({ "zsdid": 1, "_id" : 1 })xxx" ));
+            
+            auto  d40006_traces =  mongo_conn[db_name][ d40006_traces_col];
+            d40006_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+
+
+
+
+
             
          } catch (...) {
             handle_mongo_exception( "create indexes", __LINE__ );
@@ -2767,6 +3820,46 @@ void hblf_mongo_db_plugin_impl::init() {
             mongocxx::collection d40003_traces = mongo_conn[db_name][d40003_traces_col];
             create_expiration_index( d40003_traces, expire_after_seconds );
             
+            mongocxx::collection d30001 = mongo_conn[db_name][d30001_col];
+            create_expiration_index( d30001, expire_after_seconds );
+            mongocxx::collection d30001_traces = mongo_conn[db_name][d30001_traces_col];
+            create_expiration_index( d30001_traces, expire_after_seconds );
+
+            mongocxx::collection d30002 = mongo_conn[db_name][d30002_col];
+            create_expiration_index( d30002, expire_after_seconds );
+            mongocxx::collection d30002_traces = mongo_conn[db_name][d30002_traces_col];
+            create_expiration_index( d30002_traces, expire_after_seconds );
+
+            mongocxx::collection d30003 = mongo_conn[db_name][d30003_col];
+            create_expiration_index( d30003, expire_after_seconds );
+            mongocxx::collection d30003_traces = mongo_conn[db_name][d30003_traces_col];
+            create_expiration_index( d30003_traces, expire_after_seconds );
+
+            mongocxx::collection d30004 = mongo_conn[db_name][d30004_col];
+            create_expiration_index( d30004, expire_after_seconds );
+            mongocxx::collection d30004_traces = mongo_conn[db_name][d30004_traces_col];
+            create_expiration_index( d30004_traces, expire_after_seconds );
+
+            mongocxx::collection d40001 = mongo_conn[db_name][d40001_col];
+            create_expiration_index( d40001, expire_after_seconds );
+            mongocxx::collection d40001_traces = mongo_conn[db_name][d40001_traces_col];
+            create_expiration_index( d40001_traces, expire_after_seconds );
+            mongocxx::collection d40002 = mongo_conn[db_name][d40002_col];
+            create_expiration_index( d40002, expire_after_seconds );
+            mongocxx::collection d40002_traces = mongo_conn[db_name][d40002_traces_col];
+            create_expiration_index( d40002_traces, expire_after_seconds );
+            mongocxx::collection d40004 = mongo_conn[db_name][d40004_col];
+            create_expiration_index( d40004, expire_after_seconds );
+            mongocxx::collection d40004_traces = mongo_conn[db_name][d40004_traces_col];
+            create_expiration_index( d40004_traces, expire_after_seconds );
+            mongocxx::collection d40005 = mongo_conn[db_name][d40005_col];
+            create_expiration_index( d40005, expire_after_seconds );
+            mongocxx::collection d40005_traces = mongo_conn[db_name][d40005_traces_col];
+            create_expiration_index( d40005_traces, expire_after_seconds );
+            mongocxx::collection d40006 = mongo_conn[db_name][d40006_col];
+            create_expiration_index( d40006, expire_after_seconds );
+            mongocxx::collection d40006_traces = mongo_conn[db_name][d40006_traces_col];
+            create_expiration_index( d40006_traces, expire_after_seconds );
 
          } catch(...) {
             handle_mongo_exception( "create expiration indexes", __LINE__ );
