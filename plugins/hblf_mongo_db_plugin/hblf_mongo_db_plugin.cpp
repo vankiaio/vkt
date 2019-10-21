@@ -3625,7 +3625,7 @@ void hblf_mongo_db_plugin_impl::init() {
             
             //d50006 indexes
             auto  d50006 = mongo_conn[db_name][ d50006_col];
-            d50001.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
+            d50006.create_index(bsoncxx::from_json( R"xxx({ "jsid" : 1, "_id" : 1 })xxx" ));
             
             auto  d50006_traces =  mongo_conn[db_name][ d50006_traces_col];
             d50006_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
