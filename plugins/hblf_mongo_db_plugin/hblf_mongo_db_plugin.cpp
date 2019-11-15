@@ -6677,15 +6677,16 @@ void create_d99008(mongocxx::collection& d99008,const bsoncxx::document::view& d
 
    mongocxx::options::update update_opts{};
    update_opts.upsert( true );
-   bsoncxx::document::element record_id_ele = data["record_id"];
+   //bsoncxx::document::element record_id_ele = data["record_id"];
    auto update = make_document(
-      kvp( "$set", make_document(   kvp( "record_id", record_id_ele.get_value()),
+      kvp( "$set", make_document(   
+                                       //kvp( "record_id", record_id_ele.get_value()),
                                        kvp( "data", data),
                                        kvp( "createdAt", b_date{now} ),
                                        kvp("block_time",b_date{block_time})
                                        )));
    try {
-      std::cout << "create_d99008 record_id " << record_id_ele.get_utf8().value << std::endl;
+      //std::cout << "create_d99008 record_id " << record_id_ele.get_utf8().value << std::endl;
       if( !d99008.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert teacher");
@@ -7930,7 +7931,7 @@ void hblf_mongo_db_plugin_impl::init() {
 
             //d99008
             auto  d99008 = mongo_conn[db_name][ d99008_col];
-            d99008.create_index(bsoncxx::from_json( R"xxx({ "record_id":1,"test_question_id":1,"_id" : 1 })xxx" ));
+            d99008.create_index(bsoncxx::from_json( R"xxx({ "_id" : 1 })xxx" ));
             auto  d99008_traces =  mongo_conn[db_name][ d99008_traces_col];
             d99008_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
