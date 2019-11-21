@@ -6774,15 +6774,15 @@ void create_d99009( mongocxx::collection& d99009,const bsoncxx::document::view& 
    mongocxx::options::update update_opts{};
    update_opts.upsert( true );
 
-   bsoncxx::document::element stu_id_ele = data["stu_id"]; 
+   bsoncxx::document::element stuId_ele = data["stuId"]; 
    auto update = make_document(
-         kvp( "$set", make_document(   kvp( "stu_id", stu_id_ele.get_value()),
+         kvp( "$set", make_document(   kvp( "stuId", stuId_ele.get_value()),
                                        kvp( "data", data),
                                        kvp( "createdAt", b_date{now} ),
                                        kvp("block_time",b_date{block_time})
                                        )));
    try {
-      std::cout << "create_d99009 stu_id" <<stu_id_ele.get_utf8().value << std::endl;
+      std::cout << "create_d99009 stuId" <<stuId_ele.get_utf8().value << std::endl;
       if( !d99009.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d99009");
       }
@@ -6800,16 +6800,16 @@ void update_d99009(mongocxx::collection& d99009,const bsoncxx::document::view& d
    mongocxx::options::update update_opts{};
    update_opts.upsert( false );
     
-   bsoncxx::document::element stu_id_ele = data["stu_id"]; 
+   bsoncxx::document::element stuId_ele = data["stuId"]; 
    auto update = make_document( 
-       kvp( "$set", make_document(  kvp( "stu_id", stu_id_ele.get_value()),
+       kvp( "$set", make_document(  kvp( "stuId", stuId_ele.get_value()),
                                     kvp( "data", data),
                                     kvp( "createdAt", b_date{now} ),
                                     kvp("block_time",b_date{block_time})
                                     )));
    try {
-      std::cout << "update_d99009 stu_id" <<stu_id_ele.get_utf8().value << std::endl;
-      if( !d99009.update_one( make_document( kvp("stu_id",stu_id_ele.get_value())), update.view(), update_opts )) {
+      std::cout << "update_d99009 stuId" <<stuId_ele.get_utf8().value << std::endl;
+      if( !d99009.update_one( make_document( kvp("stuId",stuId_ele.get_value())), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d99009");
       }
    } catch (...) {
@@ -6823,10 +6823,10 @@ void delete_d99009( mongocxx::collection& d99009, const bsoncxx::document::view&
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
 
-   bsoncxx::document::element stu_id_ele = data["stu_id"]; 
+   bsoncxx::document::element stuId_ele = data["stuId"]; 
    try {
-      std::cout << "delete_d99009 stu_id" << stu_id_ele.get_utf8().value << std::endl;
-      if( !d99009.delete_one( make_document( kvp("stu_id",stu_id_ele.get_value())))) {
+      std::cout << "delete_d99009 stuId" << stuId_ele.get_utf8().value << std::endl;
+      if( !d99009.delete_one( make_document( kvp("stuId",stuId_ele.get_value())))) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d99009");
       }
    } catch (...) {
@@ -6844,15 +6844,15 @@ void create_d99010( mongocxx::collection& d99010,const bsoncxx::document::view& 
    mongocxx::options::update update_opts{};
    update_opts.upsert( true );
 
-   bsoncxx::document::element stu_id_ele = data["stu_id"]; 
+   bsoncxx::document::element stuId_ele = data["stuId"]; 
    auto update = make_document(
-         kvp( "$set", make_document(   kvp( "stu_id", stu_id_ele.get_value()),
+         kvp( "$set", make_document(   kvp( "stuId", stuId_ele.get_value()),
                                        kvp( "data", data),
                                        kvp( "createdAt", b_date{now} ),
                                        kvp("block_time",b_date{block_time})
                                        )));
    try {
-      std::cout << "create_d99010 stu_id" <<stu_id_ele.get_utf8().value << std::endl;
+      std::cout << "create_d99010 stuId" <<stuId_ele.get_utf8().value << std::endl;
       if( !d99010.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d99010");
       }
@@ -6870,16 +6870,16 @@ void update_d99010(mongocxx::collection& d99010,const bsoncxx::document::view& d
    mongocxx::options::update update_opts{};
    update_opts.upsert( false );
     
-   bsoncxx::document::element stu_id_ele = data["stu_id"]; 
+   bsoncxx::document::element stuId_ele = data["stuId"]; 
    auto update = make_document( 
-       kvp( "$set", make_document(  kvp( "stu_id", stu_id_ele.get_value()),
+       kvp( "$set", make_document(  kvp( "stuId", stuId_ele.get_value()),
                                     kvp( "data", data),
                                     kvp( "createdAt", b_date{now} ),
                                     kvp("block_time",b_date{block_time})
                                     )));
    try {
-      std::cout << "update_d99010 stu_id" <<stu_id_ele.get_utf8().value << std::endl;
-      if( !d99010.update_one( make_document( kvp("stu_id",stu_id_ele.get_value())), update.view(), update_opts )) {
+      std::cout << "update_d99010 stuId" <<stuId_ele.get_utf8().value << std::endl;
+      if( !d99010.update_one( make_document( kvp("stuId",stuId_ele.get_value())), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to update d99010");
       }
    } catch (...) {
@@ -6893,10 +6893,10 @@ void delete_d99010( mongocxx::collection& d99010, const bsoncxx::document::view&
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
 
-   bsoncxx::document::element stu_id_ele = data["stu_id"]; 
+   bsoncxx::document::element stuId_ele = data["stuId"]; 
    try {
-      std::cout << "delete_d99010 stu_id" << stu_id_ele.get_utf8().value << std::endl;
-      if( !d99010.delete_one( make_document( kvp("stu_id",stu_id_ele.get_value())))) {
+      std::cout << "delete_d99010 stuId" << stuId_ele.get_utf8().value << std::endl;
+      if( !d99010.delete_one( make_document( kvp("stuId",stuId_ele.get_value())))) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to delete d99010");
       }
    } catch (...) {
@@ -8170,13 +8170,13 @@ void hblf_mongo_db_plugin_impl::init() {
 
             //d99009
             auto  d99009 = mongo_conn[db_name][ d99009_col];
-            d99009.create_index(bsoncxx::from_json( R"xxx({ "stu_id":1,"_id" : 1 })xxx" ));
+            d99009.create_index(bsoncxx::from_json( R"xxx({ "stuId":1,"_id" : 1 })xxx" ));
             auto  d99009_traces =  mongo_conn[db_name][ d99009_traces_col];
             d99009_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d99010
             auto  d99010 = mongo_conn[db_name][ d99010_col];
-            d99009.create_index(bsoncxx::from_json( R"xxx({ "stu_id":1,"_id" : 1 })xxx" ));
+            d99009.create_index(bsoncxx::from_json( R"xxx({ "stuId":1,"_id" : 1 })xxx" ));
             auto  d99010_traces =  mongo_conn[db_name][ d99010_traces_col];
             d99010_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
