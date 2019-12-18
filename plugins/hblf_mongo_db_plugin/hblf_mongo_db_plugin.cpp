@@ -1241,7 +1241,7 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
    auto client = mongo_pool->acquire();
    auto& mongo_conn = *client;
 
-
+   auto accounts = mongo_conn[db_name][accounts_col];
    auto d99001 = mongo_conn[db_name][d99001_col];	
     auto d99001_traces = mongo_conn[db_name][d99001_traces_col];	
     auto d99002 = mongo_conn[db_name][d99002_col];	
@@ -1259,11 +1259,11 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     auto d99007_traces = mongo_conn[db_name][d99007_traces_col];	
     auto d99008 = mongo_conn[db_name][d99008_col];	
     auto d99008_traces = mongo_conn[db_name][d99008_traces_col];
-
+   
 
    
 
-   accounts.drop();
+    accounts.drop();
     d99001.drop();	
     d99001_traces.drop();	
     d99002.drop();	
@@ -1331,8 +1331,8 @@ void hblf_mongo_db_plugin_impl::init() {
       auto client = mongo_pool->acquire();
       auto& mongo_conn = *client;
 
-      auto d00001_COL = mongo_conn[db_name][d00001_col];
-      if( d00001_COL.count( make_document()) == 0 ) {
+      auto d99001_COL = mongo_conn[db_name][d99001_col];
+      if( d99001_COL.count( make_document()) == 0 ) {
              
          try {
             // MongoDB administrators (to enable sharding) :
