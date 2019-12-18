@@ -879,7 +879,7 @@ void create_d99004(mongocxx::collection& d99004,const bsoncxx::document::view& d
                                        )));	
    try {	
       std::cout << "create_d99004 resource_id " << resource_id_ele.get_utf8().value << std::endl;	
-      if( !d99004.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {	
+      if( !d99004.update_one( make_document( kvp( "resource_id", resource_id_ele.get_value())), update.view(), update_opts )) {	
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));	
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert teacher");	
       }	
@@ -905,7 +905,7 @@ void create_d99005(mongocxx::collection& d99005,const bsoncxx::document::view& d
                                        )));	
    try {	
       std::cout << "create_d99005 resource_record_id " << resource_record_id_ele.get_utf8().value << std::endl;	
-      if( !d99005.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {	
+      if( !d99005.update_one( make_document( kvp( "resource_record_id", resource_record_id_ele.get_value() )), update.view(), update_opts )) {	
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));	
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert teacher");	
       }	
@@ -931,7 +931,7 @@ void create_d99006(mongocxx::collection& d99006,const bsoncxx::document::view& d
                                        )));	
    try {	
       std::cout << "create_d99006 test_question_id " << test_question_id_ele.get_utf8().value << std::endl;	
-      if( !d99006.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {	
+      if( !d99006.update_one( make_document( kvp( "test_question_id", test_question_id_ele.get_value())), update.view(), update_opts )) {	
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));	
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert teacher");	
       }	
@@ -957,7 +957,7 @@ void create_d99007(mongocxx::collection& d99007,const bsoncxx::document::view& d
                                        )));	
    try {	
       std::cout << "create_d99007 record_id " << record_id_ele.get_utf8().value << std::endl;	
-      if( !d99007.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {	
+      if( !d99007.update_one( make_document( kvp( "record_id", record_id_ele.get_value() )), update.view(), update_opts )) {	
          // EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert students ${n}", ("n", name));	
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert teacher");	
       }	
