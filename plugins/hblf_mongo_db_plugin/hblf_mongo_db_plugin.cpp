@@ -8677,14 +8677,14 @@ void hblf_mongo_db_plugin_impl::init() {
 
             //d12010 indexes
             auto d12010= mongo_conn[db_name][ d12010_col];
-            d1200.create_index(bsoncxx::from_json( R"xxx({   "id":1 })xxx" ));
+            d12010.create_index(bsoncxx::from_json( R"xxx({   "id":1 })xxx" ));
             
             auto  d12010_traces =  mongo_conn[db_name][d12010_traces_col];
             d12010_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
             //d1200 indexes
             auto d12011= mongo_conn[db_name][ d12011_col];
-            d1200.create_index(bsoncxx::from_json( R"xxx({   "id":1 })xxx" ));
+            d12011.create_index(bsoncxx::from_json( R"xxx({   "id":1 })xxx" ));
             
             auto  d12011_traces =  mongo_conn[db_name][d12011_traces_col];
             d12011_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
