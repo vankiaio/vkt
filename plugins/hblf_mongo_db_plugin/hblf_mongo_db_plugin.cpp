@@ -299,6 +299,10 @@ public:
    mongocxx::collection _d99010;
    mongocxx::collection _d99010_traces;
 
+   mongocxx::collection _d99011;              //幼儿园
+   mongocxx::collection _d99011_traces;
+   
+
 
    
 
@@ -567,7 +571,9 @@ public:
    static const action_name deld99009;       
    static const action_name addd99010;
    static const action_name modd99010;
-   static const action_name deld99010;           
+   static const action_name deld99010;    
+
+   static const action_name addd99011;       
 
    
 
@@ -734,6 +740,10 @@ public:
    static const std::string d99009_traces_col;
    static const std::string d99010_col;               
    static const std::string d99010_traces_col;
+
+   static const std::string d99011_col;               
+   static const std::string d99011_traces_col;
+
    
 
 
@@ -969,7 +979,7 @@ const action_name hblf_mongo_db_plugin_impl::addd99010= N(addprgrminfo);
 const action_name hblf_mongo_db_plugin_impl::modd99010 = N(modprgrminfo);
 const action_name hblf_mongo_db_plugin_impl::deld99010 = N(delprgrminfo);
 
-
+const action_name hblf_mongo_db_plugin_impl::addd99011= N(addkindergtn);
 
 
 
@@ -1135,6 +1145,9 @@ const std::string hblf_mongo_db_plugin_impl::d99009_col = "basic_info";
 const std::string hblf_mongo_db_plugin_impl::d99009_traces_col = "basic_info_traces";
 const std::string hblf_mongo_db_plugin_impl::d99010_col = "program_information";                                     
 const std::string hblf_mongo_db_plugin_impl::d99010_traces_col = "program_information_traces";
+
+const std::string hblf_mongo_db_plugin_impl::d99011_col = "kindergarten";                                     
+const std::string hblf_mongo_db_plugin_impl::d99011_traces_col = "kindergarten_traces";
 
 
 
@@ -1453,6 +1466,9 @@ void hblf_mongo_db_plugin_impl::consume_blocks() {
       _d99009_traces = mongo_conn[db_name][d99009_traces_col];
       _d99010 = mongo_conn[db_name][d99010_col];
       _d99010_traces = mongo_conn[db_name][d99010_traces_col];
+
+      _d99011 = mongo_conn[db_name][d99011_col];
+      _d99011_traces = mongo_conn[db_name][d99011_traces_col];
 
 
       _accounts = mongo_conn[db_name][accounts_col];
@@ -1857,6 +1873,8 @@ mongocxx::bulk_write bulk_action_d12001_traces = _d12001_traces.create_bulk_writ
    mongocxx::bulk_write bulk_action_d99009_traces = _d99009_traces.create_bulk_write(bulk_opts);
    mongocxx::bulk_write bulk_action_d99010_traces = _d99010_traces.create_bulk_write(bulk_opts);
 
+   mongocxx::bulk_write bulk_action_d99011_traces = _d99011_traces.create_bulk_write(bulk_opts);
+
    
    
    
@@ -1942,6 +1960,10 @@ mongocxx::bulk_write bulk_action_d12001_traces = _d12001_traces.create_bulk_writ
 
    bool write_d99009_atraces = false;
    bool write_d99010_atraces = false;
+
+   bool write_d99011_atraces = false;
+
+
 
    bool write_ttrace = false; // filters apply to transaction_traces as well
    bool executed = t->receipt.valid() && t->receipt->status == chain::transaction_receipt_header::executed;
@@ -2125,6 +2147,10 @@ mongocxx::bulk_write bulk_action_d12001_traces = _d12001_traces.create_bulk_writ
                write_d99009_atraces |= add_action_trace(bulk_action_d99009_traces,atrace,t,executed,now,write_ttrace);
          }else if(atrace.act.name == addd99010 || atrace.act.name == modd99010 || atrace.act.name == deld99010){
                write_d99010_atraces |= add_action_trace(bulk_action_d99010_traces,atrace,t,executed,now,write_ttrace);
+         }
+
+         else if(atrace.act.name == addd99011){
+               write_d99011_atraces |= add_action_trace(bulk_action_d99011_traces,atrace,t,executed,now,write_ttrace);
          }
       } catch(...) {
          handle_mongo_exception("add action traces", __LINE__);
@@ -2949,6 +2975,17 @@ if( write_d99009_atraces ) {
 if( write_d99010_atraces ) {
       try {
          if( !bulk_action_d99010_traces.execute() ) {
+            EOS_ASSERT( false, chain::mongo_db_insert_fail,
+                        "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
+         }
+      } catch( ... ) {
+         handle_mongo_exception( "action traces insert", __LINE__ );
+      }
+   }
+
+   if( write_d99011_atraces ) {
+      try {
+         if( !bulk_action_d99011_traces.execute() ) {
             EOS_ASSERT( false, chain::mongo_db_insert_fail,
                         "Bulk action traces insert failed for transaction trace: ${id}", ("id", t->id) );
          }
@@ -7844,17 +7881,18 @@ void create_d99009( mongocxx::collection& d99009,const bsoncxx::document::view& 
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
 
-   mongocxx::options::update update_opts{};
-   update_opts.upsert( true );
+   //mongocxx::options::update update_opts{};
+   //update_opts.upsert( true );
+   mongocxx::options::insert insert_obj{};
 
    bsoncxx::document::element stuId_ele = data["stuId"]; 
    auto update = make_document(
-         kvp( "$set", make_document(   kvp( "stuId", stuId_ele.get_value()),
+                                       kvp( "stuId", stuId_ele.get_value()),
                                        kvp( "data", data),
                                        kvp( "createdAt", b_date{now} ),
                                        kvp("block_time",b_date{block_time})
-                                       )));
-   try {
+                                       );
+   /*try {
       std::cout << "create_d99009 stuId" <<stuId_ele.get_utf8().value << std::endl;
       if( !d99009.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d99009");
@@ -7862,6 +7900,17 @@ void create_d99009( mongocxx::collection& d99009,const bsoncxx::document::view& 
    } catch (...) {
       handle_mongo_exception( "create_d99009", __LINE__ );
    }
+   */
+  try {
+      std::cout << "create_d99009 stuId" <<stuId_ele.get_utf8().value << std::endl;
+      if( !d99009.insert_one(update.view())) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d99009");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d99009", __LINE__ );
+   }
+
+
 }
 
 //更新表
@@ -7914,19 +7963,18 @@ void create_d99010( mongocxx::collection& d99010,const bsoncxx::document::view& 
    using bsoncxx::builder::basic::kvp;
    using bsoncxx::builder::basic::make_document;
 
-   mongocxx::options::update update_opts{};
-   update_opts.upsert( true );
+   
 
    bsoncxx::document::element stuId_ele = data["stuId"]; 
    auto update = make_document(
-         kvp( "$set", make_document(   kvp( "stuId", stuId_ele.get_value()),
+                                       kvp( "stuId", stuId_ele.get_value()),
                                        kvp( "data", data),
                                        kvp( "createdAt", b_date{now} ),
                                        kvp("block_time",b_date{block_time})
-                                       )));
+                                       );
    try {
       std::cout << "create_d99010 stuId" <<stuId_ele.get_utf8().value << std::endl;
-      if( !d99010.update_one( make_document( kvp( "data", data )), update.view(), update_opts )) {
+      if( !d99010.insert_one(  update.view())) {
          EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d99010");
       }
    } catch (...) {
@@ -7974,6 +8022,27 @@ void delete_d99010( mongocxx::collection& d99010, const bsoncxx::document::view&
       }
    } catch (...) {
       handle_mongo_exception( "delete_d99010", __LINE__ );
+   }
+}
+
+
+//创建表
+void create_d99011( mongocxx::collection& d99011,const bsoncxx::document::view& data, std::chrono::milliseconds& now  ,std::chrono::milliseconds block_time) {
+   using namespace bsoncxx::types;
+   using bsoncxx::builder::basic::kvp;
+   using bsoncxx::builder::basic::make_document;
+
+   auto update = make_document(     
+                                       kvp( "data", data),
+                                       kvp( "createdAt", b_date{now} ),
+                                       kvp("block_time",b_date{block_time})
+                                       );
+   try {
+      if( !d99011.insert_one( update.view())) {
+         EOS_ASSERT( false, chain::mongo_db_update_fail, "Failed to insert d99011");
+      }
+   } catch (...) {
+      handle_mongo_exception( "create_d99011", __LINE__ );
    }
 }
 
@@ -8446,9 +8515,11 @@ void hblf_mongo_db_plugin_impl::update_base_col(const chain::action& act, const 
               update_d99010(_d99010,datadoc,now,block_time);
       }else if(act.name == deld99010){
                delete_d99010(_d99010,datadoc,now);
+      }else if(act.name == addd99011){
+               create_d99011(_d99011,datadoc,now,block_time);
       }
 
-      
+     
       
    } catch( fc::exception& e ) {
       // if unable to unpack native type, skip account creation
@@ -8672,6 +8743,9 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     auto d99010 = mongo_conn[db_name][d99010_col];
     auto d99010_traces = mongo_conn[db_name][d99010_traces_col];
 
+    auto d99011 = mongo_conn[db_name][d99011_col];
+    auto d99011_traces = mongo_conn[db_name][d99011_traces_col];
+
 
 
 
@@ -8846,6 +8920,10 @@ void hblf_mongo_db_plugin_impl::wipe_database() {
     d99009_traces.drop();
     d99010.drop();
     d99010_traces.drop();
+
+    d99011.drop();
+    d99011_traces.drop();
+
 
 
 
@@ -9434,17 +9512,7 @@ void hblf_mongo_db_plugin_impl::init() {
             auto  d99008_traces =  mongo_conn[db_name][ d99008_traces_col];
             d99008_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
 
-            //d99009
-            auto  d99009 = mongo_conn[db_name][ d99009_col];
-            d99009.create_index(bsoncxx::from_json( R"xxx({ "stuId":1,"_id" : 1 })xxx" ));
-            auto  d99009_traces =  mongo_conn[db_name][ d99009_traces_col];
-            d99009_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
-
-            //d99010
-            auto  d99010 = mongo_conn[db_name][ d99010_col];
-            d99009.create_index(bsoncxx::from_json( R"xxx({ "stuId":1,"_id" : 1 })xxx" ));
-            auto  d99010_traces =  mongo_conn[db_name][ d99010_traces_col];
-            d99010_traces.create_index(bsoncxx::from_json( R"xxx({ "block_num" : 1, "_id" : 1 })xxx" ));
+           
 
             
             
@@ -9815,15 +9883,7 @@ void hblf_mongo_db_plugin_impl::init() {
             mongocxx::collection d99008_traces = mongo_conn[db_name][d99008_traces_col];
             create_expiration_index( d99008_traces, expire_after_seconds );
 
-            mongocxx::collection d99009 = mongo_conn[db_name][d99009_col];
-            create_expiration_index( d99009, expire_after_seconds );
-            mongocxx::collection d99009_traces = mongo_conn[db_name][d99009_traces_col];
-            create_expiration_index( d99009_traces, expire_after_seconds );
-
-            mongocxx::collection d99010 = mongo_conn[db_name][d99010_col];
-            create_expiration_index( d99010, expire_after_seconds );
-            mongocxx::collection d99010_traces = mongo_conn[db_name][d99010_traces_col];
-            create_expiration_index( d99010_traces, expire_after_seconds );
+            
 
          } catch(...) {
             handle_mongo_exception( "create expiration indexes", __LINE__ );
